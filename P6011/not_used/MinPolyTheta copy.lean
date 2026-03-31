@@ -44,6 +44,9 @@ lemma minpoly_theta : minpoly ℚ θ = X ^ 3 - 28 := by
       norm_cast at h
       rw [sub_eq_zero] at h
       exact h
+    -- let num_nn : ℕ := num.natAbs
+    -- have h_nonneg : num = num_nn := by
+    --   sorry
     have h2_dvd_num : 2 ∣ num := by
       have h := haeval_num_den
       rw [(by norm_num : (28 : ℤ) = 14 * 2), ← mul_assoc] at h
@@ -60,6 +63,7 @@ lemma minpoly_theta : minpoly ℚ θ = X ^ 3 - 28 := by
         rw [sub_mul, eq_sub_iff_add_eq, mul_assoc, ← mul_one_add]
         norm_num
         exact haeval_num_den.symm
+      -- rw [← mul_assoc] at h
       apply (dvd_pow_iff_dvd ((Int.prime_ofNat_iff).mpr Nat.prime_two) (by norm_num : 3 ≠ 0)).mp
       rw [h]
       exact dvd_mul_left _ _
@@ -103,6 +107,9 @@ lemma minpoly_theta : minpoly ℚ θ = X ^ 3 - 28 := by
   exact (minpoly.unique ℚ θ h_monic h_root h_min).symm
 
 theorem rank_F_eq_three : Module.finrank ℚ F = 3 := by
+  -- rw [IntermediateField.adjoin.finrank theta_isIntegralQ]
+  -- rw [minpoly_theta, natDegree_X_pow_sub_C (n := 3) (r := (28 : ℤ))]
+  -- #check natDegree_X_pow_sub_C (n := 3) (r := (28 : ℤ))
   dsimp only [F]
   rw [IntermediateField.adjoin.finrank theta_isIntegralQ]
   rw [minpoly_theta]

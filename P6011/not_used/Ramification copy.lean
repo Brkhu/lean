@@ -8,10 +8,13 @@ import Mathlib.NumberTheory.NumberField.Discriminant.Different
 import Mathlib.NumberTheory.RamificationInertia.Galois
 -- for prime ideals in ℤ
 import Mathlib.RingTheory.Ideal.NatInt
+-- for Kummer-Dedekind criteria
+import Mathlib.NumberTheory.NumberField.Ideal.KummerDedekind
 
 
 import Brkhu.P6011.Defs
 import Brkhu.P6011.MinPolyTheta
+-- import Brkhu.P6011.MinPolyY
 
 
 set_option linter.style.emptyLine false
@@ -54,6 +57,9 @@ lemma p7_map_to_P7 : map (algebraMap ℤ O) p7 = P7 := by
   simp [algebraMap_int_eq O]
 
 
+
+-- #check map_span (algebraMap ℤ O) {2}
+
 lemma thetaO_cube : θO ^ 3 = 28 := by
   apply RingOfIntegers.eq_iff.mp
   simp only [map_pow, θO]
@@ -80,8 +86,14 @@ lemma hthetaO_neq_zero : ¬ θO = 0 := by
 
 
 theorem h_ramify_2 : 2 ∣ NumberField.discr F := by
+  -- 核心思想：θ^3 = 28 = 2^2 * 7，说明 2 在 𝓞 F 中的分歧指数为 3
+  -- have h_theta_cube : (⟨θF, sorry⟩ : O) ^ 3 = 28 := sorry
+  -- 设 p_2 为整除 2 的素理想，对其取赋值 v_{p_2}
+  -- 3 * v_{p_2}(θ) = 2 * e_2 + 0 => 3 ∣ 2 * e_2 => 3 ∣ e_2
 
   have : p2.IsPrime := p2_prime
+
+  -- #check @nonempty_primesOver ℤ _ O _ _ _ _ _ _ p2 p2_prime
 
   obtain ⟨P2', hP2'⟩ := nonempty_primesOver (R := ℤ) (S := O) p2
 
@@ -184,6 +196,11 @@ theorem h_ramify_2 : 2 ∣ NumberField.discr F := by
       · exact primesOver.isPrime p2 ⟨P2', hP2'⟩
 
   have h_2_ramified : ¬ Algebra.IsUnramifiedAt ℤ (A := O) P2' := by
+    -- apply Algebra.isRamifiedAt_of_ramificationIdxIn_eq_one
+    -- have h_ramify_2 : Ideal.ramificationIdxIn P2' O = 3 := by
+    --   sorry
+    -- rw [h_ramify_2]
+    -- norm_num
     have : P2'.IsPrime := primesOver.isPrime p2 ⟨P2', hP2'⟩
     have h : P2' ≠ ⊥ := by
       have h1 : p2 ≠ ⊥ := by
@@ -192,6 +209,8 @@ theorem h_ramify_2 : 2 ∣ NumberField.discr F := by
         simp
       exact ne_bot_of_liesOver_of_ne_bot h1 P2'
     apply (Algebra.isUnramifiedAt_iff_of_isDedekindDomain h).not.mpr
+    -- simp only [Submodule.zero_eq_bot, ne_eq, mul_eq_bot, span_singleton_eq_bot, or_self]
+    --       exact hthetaO_neq_zero
     rw [over_def P2' p2] at h_P2'_ramification_index_3
     rw [h_P2'_ramification_index_3]
     simp
@@ -199,6 +218,7 @@ theorem h_ramify_2 : 2 ∣ NumberField.discr F := by
   apply dvd_differentIdeal_iff.mpr at h_2_ramified
   apply Ideal.dvd_iff_le.mp at h_2_ramified
   apply (mem_of_le_of_mem · (NumberField.discr_mem_differentIdeal F O)) at h_2_ramified
+  -- have h_2_ramified := mem_of_le_of_mem h_2_ramified (NumberField.discr_mem_differentIdeal F O)
   apply (mem_of_liesOver P2' p2 (discr F)).mpr at h_2_ramified
   dsimp only [p2] at h_2_ramified
   exact mem_span_singleton.mp h_2_ramified

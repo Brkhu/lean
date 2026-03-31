@@ -49,7 +49,6 @@ lemma theta_isAlgebraicQ : IsAlgebraic ℚ θ := by
 lemma theta_is_in_F : θ ∈ F := by
   apply F.adjoin_simple_le_iff.mp
   simp
-
 noncomputable abbrev θF : F := ⟨θ, theta_is_in_F⟩
 
 lemma hthetaF_in_OF : θF ∈ integralClosure ℤ ↥F := by
@@ -66,7 +65,6 @@ lemma hthetaF_in_OF : θF ∈ integralClosure ℤ ↥F := by
     rw [h]
     norm_num
   exact ⟨P, h1, h2⟩
-
 noncomputable abbrev θO : 𝓞 F := ⟨θF, hthetaF_in_OF⟩
 
 
@@ -75,12 +73,6 @@ instance instFiniteDimensionalF : FiniteDimensional ℚ F := by
   exact IntermediateField.adjoin.finiteDimensional theta_isIntegralQ
 
 instance instNumberFieldF : NumberField F where
-  -- NumberField 定义上要求是特征为 0 的有限维 ℚ-代数
-
-  -- 1. 特征为 0: F 作为 ℝ 的子域，Lean 可以自动推导出 CharZero，所以留给 inferInstance 即可
-  -- (如果在某些老版本报错，可以显式写出 toCharZero := inferInstance)
-
-  -- 2. 有限维: 填入我们在步骤 2 中构造的实例
   to_finiteDimensional := instFiniteDimensionalF
 
 

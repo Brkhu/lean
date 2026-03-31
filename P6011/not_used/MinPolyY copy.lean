@@ -57,6 +57,7 @@ lemma hf_nonzero : f ≠ 0 := by
 
 
 lemma hf_rat_natDeg : natDegree f_rat = 3 := by
+  -- #check @Polynomial.degree_map_eq_iff ℤ ℚ _ _ (algebraMap ℤ ℚ) f
   rw [natDegree_map_eq_iff.mpr]
   · rw [hf_natDeg]
   · left
@@ -118,6 +119,8 @@ lemma hf_rat_irreducible : Irreducible f_rat := by
     have hnum_dvd_den_3 : num ∣ den ^ 3 := by
       have hnum_div : num ∣ 0 := by exact dvd_zero num
       rw [← haeval_num_den_zero] at hnum_div
+      -- apply Dvd.dvd.sub at hnum_div
+      -- apply dvd_sub_comm.mp at hnum_div
       apply @dvd_sub ℤ _ num (num ^ 3 + num ^ 2 * ↑den + num * ↑den ^ 2 * 5) at hnum_div
       · norm_num at hnum_div
         exact hnum_div
@@ -141,6 +144,16 @@ lemma hf_rat_irreducible : Irreducible f_rat := by
     have hden_dvd_num_3 : denZ ∣ num ^ 3 := by
       have hden_div : denZ ∣ 0 := by exact dvd_zero denZ
       rw [← haeval_num_den_zero] at hden_div
+      -- apply @dvd_sub ℤ _ denZ (denZ ^ 3 + denZ ^ 2 * ↑num + denZ * ↑num ^ 2 * 5) at hden_div
+      -- · norm_num at hden_div
+      --   exact hnum_div
+      -- · apply @dvd_add ℤ _ _ _ num (num ^ 3 + num ^ 2 * ↑den)
+      --   · apply @dvd_add ℤ _ _ _ num (num ^ 3)
+      --     · exact dvd_pow_self num (by norm_num : 3 ≠ 0)
+      --     · rw [pow_two, mul_assoc]
+      --       exact @dvd_mul_right ℤ _ num (num * den)
+      --   · rw [mul_assoc]
+      --     exact @dvd_mul_right ℤ _ num (↑den ^ 2 * 5)
       apply @dvd_add ℤ _ _ _ denZ (den ^ 3) at hden_div
       · norm_num at hden_div
         apply @dvd_sub ℤ _ denZ (num * ↑den ^ 2 * 5) at hden_div
