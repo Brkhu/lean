@@ -185,12 +185,7 @@ theorem h_ramify_2 : 2 ∣ NumberField.discr F := by
     constructor
     · have : P2'.IsPrime := primesOver.isPrime p2 ⟨P2', hP2'⟩
       have h := ramificationIdx_le_finrank (R := ℤ) (S := O) ℚ F (p := p2) P2'
-      have hrank_eq_3 : Module.finrank ℚ ↥F = 3 := by
-        dsimp only [F]
-        rw [IntermediateField.adjoin.finrank theta_isIntegralQ]
-        rw [minpoly_theta]
-        exact Polynomial.natDegree_X_pow_sub_C
-      rw [hrank_eq_3] at h
+      rw [rank_F_eq_three] at h
       exact h
 
     · rw [IsDedekindDomain.ramificationIdx_eq_multiplicity]
@@ -319,12 +314,7 @@ theorem h_ramify_7 : 7 ∣ NumberField.discr F := by
     constructor
     · have : P7'.IsPrime := primesOver.isPrime p7 ⟨P7', hP7'⟩
       have h := ramificationIdx_le_finrank (R := ℤ) (S := O) ℚ F (p := p7) P7'
-      have hrank_eq_3 : Module.finrank ℚ ↥F = 3 := by
-        dsimp only [F]
-        rw [IntermediateField.adjoin.finrank theta_isIntegralQ]
-        rw [minpoly_theta]
-        exact Polynomial.natDegree_X_pow_sub_C
-      rw [hrank_eq_3] at h
+      rw [rank_F_eq_three] at h
       exact h
 
     · rw [IsDedekindDomain.ramificationIdx_eq_multiplicity]

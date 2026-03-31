@@ -105,3 +105,12 @@ lemma minpoly_theta : minpoly ℚ θ = X ^ 3 - 28 := by
 
   subst f
   exact (minpoly.unique ℚ θ h_monic h_root h_min).symm
+
+theorem rank_F_eq_three : Module.finrank ℚ F = 3 := by
+  -- rw [IntermediateField.adjoin.finrank theta_isIntegralQ]
+  -- rw [minpoly_theta, natDegree_X_pow_sub_C (n := 3) (r := (28 : ℤ))]
+  -- #check natDegree_X_pow_sub_C (n := 3) (r := (28 : ℤ))
+  dsimp only [F]
+  rw [IntermediateField.adjoin.finrank theta_isIntegralQ]
+  rw [minpoly_theta]
+  exact Polynomial.natDegree_X_pow_sub_C
