@@ -1,84 +1,98 @@
--- import Brkhu.P6011.YTheta
-
--- set_option linter.style.emptyLine false
-
--- open NumberField
-
-
 -- for discr and resultants of polynomials
 import Mathlib.RingTheory.Polynomial.Resultant.Basic
--- for irreducible_iff_roots_eq_zero_of_degree_le_three
-import Mathlib.Algebra.Polynomial.SpecificDegree
--- for Gauss's lemma
-import Mathlib.RingTheory.Polynomial.GaussLemma
+-- for qify
+import Mathlib.Tactic.Qify
+-- for rational integral over Z
+import Mathlib.NumberTheory.Niven
+-- for ring of integer as range
+import Mathlib.FieldTheory.IntermediateField.Adjoin.Defs
 
 import Mathlib.NumberTheory.NumberField.Discriminant.Defs
 
-import Mathlib.RingTheory.PowerSeries.Basic
-import Mathlib.RingTheory.PowerSeries.WellKnown
+
+import Brkhu.P6011.Defs
+import Brkhu.P6011.MinPolyTheta
+import Brkhu.P6011.MinPolyY
+import Brkhu.P6011.YTheta
 
 
-open Polynomial
+set_option linter.style.emptyLine false
+
+open scoped IntermediateField
+open Polynomial NumberField
 
 
 variable {A B : Type*} [CommRing A] [CommRing B] [Algebra A B]
 
-#check PowerSeries.invUnitsSub
-#check PowerSeries.coeff_invUnitsSub
 
-noncomputable def power_base (x : B) (n : ℕ) : Fin n → B := fun k => x ^ k.val
 
-theorem power_base_apply (x : B) (n : ℕ) (k : Fin n) : power_base x n k = x ^ k.val :=
-  rfl
+noncomputable abbrev b := NumberField.integralBasis ℚ⟮y⟯
+noncomputable abbrev pb := IntermediateField.adjoin.powerBasis y_integral'
 
-noncomputable def hankel_matrix (x : B) (n : ℕ) := Matrix.of
-  fun (i j : Fin n) ↦ (Algebra.trace A B) (x ^ (i.val + j.val))
-
-theorem hankel_matrix_apply (x : B) (n : ℕ) (i j : Fin n) :
-  hankel_matrix x n i j = (Algebra.trace A B) (x ^ (i.val + j.val)) := rfl
-
-theorem power_base_trace_matrix (x : B) (n : ℕ) :
-    Algebra.traceMatrix A (power_base x n) = hankel_matrix x n := by
-  ext i j
-  dsimp only [Algebra.traceMatrix_apply, hankel_matrix_apply, power_base_apply,
-    Algebra.traceForm_apply, Matrix.of_apply]
-  congr
-  rw [← pow_add]
-
-theorem power_base_discr_eq_minpoly_discr (x : B) (f : A[X]) (hf_monic : Monic f)
-    (hf_root : aeval x f = 0) :
-    Algebra.discr A (power_base x f.natDegree)
-    = (-1) ^ (f.natDegree * (f.natDegree - 1) / 2) * f.discr := by
-  dsimp [Algebra.discr]
-  rw [power_base_trace_matrix]
-
-  -- rw [← pow_add x _ _]
-  -- rw [power_base_def x f.natDegree (i : Fin f.natDegree)]
+lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
 
   sorry
 
+lemma discr_powbasis_integralbasis : ∃ (m : ℤ), Algebra.discr ℚ pb.basis = m ^ 2 * discr F := by
 
--- def sylvester (f g : R[X]) (m n : ℕ) : Matrix (Fin (m + n)) (Fin (m + n)) R :=
---   .of fun i j ↦ j.addCases
---     (fun j₁ ↦ if (i : ℕ) ∈ Set.Icc (j₁ : ℕ) (j₁ + n) then g.coeff (i - j₁) else 0)
---     (fun j₁ ↦ if (i : ℕ) ∈ Set.Icc (j₁ : ℕ) (j₁ + m) then f.coeff (i - j₁) else 0)
+  have h := IntermediateField.topEquiv (F := ℚ) (E := F)
 
--- b0       a0
--- b1 b0    a1 a0
--- bn b1 b0 am a1 a0
---    bn b1    am a1
---       bn       am
+  rw [NumberField.discr_eq_discr_of_algEquiv F h.symm, ← y_gen_top]
 
--- a0    a1
--- a1 a0 2a2     a1
--- .. a1 ..      2a2
--- an .. na(n-1) ..
---    an         na(n-1)
+  rw [NumberField.coe_discr]
 
--- f xf ... x^{n-2}f f' xf' ... x^{n-1}f'
+  let pb' := pb.basis ∘ ⇑(pb.basis.indexEquiv b).symm
 
--- a0    b0
--- a1 a0 b1 b0
--- a2 a1 b2 b1 b0
--- a3 a2    b2 b1
---    a3       b2
+  have h1 := Algebra.discr_of_matrix_vecMul b (b.toMatrix pb')
+
+  have hint : ∀ i j, b.toMatrix pb' i j ∈ Set.range (Int.cast (R := ℚ)) := by
+    intro i j
+    rw [Module.Basis.toMatrix_apply]
+    have h_algmap_intcast : algebraMap ℤ ℚ = Int.cast (R := ℚ) := by rfl
+    rw [← h_algmap_intcast]
+
+    have h_pb' : pb' j ∈ Submodule.span ℤ (Set.range b) := by
+      apply (NumberField.mem_span_integralBasis ℚ⟮y⟯).mpr
+      have h_pb : ∀ (n : Fin pb.dim), pb.basis n ∈ (algebraMap (𝓞 ℚ⟮y⟯) ℚ⟮y⟯).range := by
+        intro n
+        rw [pb.basis_eq_pow n]
+        have h_pow_integral : IsIntegral ℤ (pb.gen ^ n.val) := by
+          apply IsIntegral.pow
+
+          apply IntermediateField.coe_isIntegral_iff.mp
+          have h_gen_y : pb.gen = y := by rfl
+          exact y_integral
+        apply RingHom.mem_range.mpr
+        use ⟨pb.gen ^ n.val, h_pow_integral⟩
+        simp
+      exact h_pb ((pb.basis.indexEquiv b).symm j)
+
+    exact (Module.Basis.mem_span_iff_repr_mem ℤ b (pb' j)).mp h_pb' i
+
+  let M := b.toMatrix pb'
+
+  choose f hf using hint
+  let MZ : Matrix (Module.Free.ChooseBasisIndex ℤ (𝓞 ↥ℚ⟮y⟯))
+      (Module.Free.ChooseBasisIndex ℤ (𝓞 ↥ℚ⟮y⟯)) ℤ := Matrix.of f
+  have h_rep : M = MZ.map (Int.cast (R := ℚ)) := by
+    ext i j
+    simp only [Matrix.map_apply, Matrix.of_apply, M, MZ]
+    exact (hf i j).symm
+  use MZ.det
+  rw [Int.cast_det]
+  rw [← h_rep]
+
+  rw [← Algebra.discr_of_matrix_vecMul b (b.toMatrix pb')]
+
+  rw [Module.Basis.toMatrix_map_vecMul b pb']
+
+  have h : Algebra.discr ℚ pb.basis = Algebra.discr ℚ pb' := by
+    dsimp only [pb']
+    have h' := Algebra.discr_reindex ℚ pb.basis (pb.basis.indexEquiv b)
+    exact h'.symm
+  exact h
+
+theorem h_discr_rel : ∃ (m : ℤ), f.discr = m ^ 2 * NumberField.discr F := by
+  qify
+  rw [discr_powbasis_f]
+  exact discr_powbasis_integralbasis

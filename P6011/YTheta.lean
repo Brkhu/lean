@@ -27,9 +27,9 @@ lemma y_by_thetaF : y = (θF ^ 2 / 2 - θF - 1) / 3 := by
   apply SetLike.coe_eq_coe.mp
   rw [div_eq_mul_inv, div_eq_mul_inv, sub_eq_add_neg, sub_eq_add_neg]
   rw [IntermediateField.coe_mul, IntermediateField.coe_add, IntermediateField.coe_add]
-  rw [IntermediateField.coe_mul, IntermediateField.coe_pow]
-  rw [IntermediateField.coe_inv, IntermediateField.coe_inv]
-  rw [IntermediateField.coe_neg, IntermediateField.coe_neg]
+  rw [IntermediateField.coe_mul, IntermediateField.coe_pow,
+    IntermediateField.coe_inv, IntermediateField.coe_inv,
+    IntermediateField.coe_neg, IntermediateField.coe_neg]
   rw [(by norm_num : (2 : F) = 1 + 1), (by norm_num : (3 : F) = 1 + 1 + 1)]
   rw [IntermediateField.coe_add, IntermediateField.coe_add, IntermediateField.coe_one]
   dsimp only [y, θF]

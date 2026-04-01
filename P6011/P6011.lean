@@ -15,29 +15,6 @@ open Polynomial NumberField
 theorem Algebra2 : ∃ (_ : NumberField F), NumberField.discr F = -588 := by
   use instNumberFieldF
 
-  have h_discr_rel : ∃ (m : ℤ), f.discr = m ^ 2 * NumberField.discr F := by
-
-    have hO_rank : Module.finrank ℤ O = 3 := by
-      rw [NumberField.RingOfIntegers.rank F, rank_F_eq_three]
-
-    let b := Module.finBasis ℤ O
-    rw [hO_rank] at b
-
-    rw [← NumberField.discr_eq_discr F b]
-
-    let pb : Fin 3 → 𝓞 F := power_base yO 3
-    have discr_powbase_eq_discr_minpoly : f.discr = Algebra.discr ℤ pb := by
-      dsimp [pb]
-      rw [← hf_natDeg]
-      exact (power_base_discr_eq_minpoly_discr yO f hf_monic f_yO_root).symm
-
-    have h := Algebra.discr_of_matrix_vecMul b (b.toMatrix pb)
-    rw [b.toMatrix_map_vecMul] at h
-
-    use (b.toMatrix pb).det
-    rw [discr_powbase_eq_discr_minpoly]
-    exact h
-
   obtain ⟨m, hm⟩ := h_discr_rel
 
   have h_m_not_div_2 : ¬ (2 ∣ m) := by
