@@ -29,8 +29,24 @@ variable {A B : Type*} [CommRing A] [CommRing B] [Algebra A B]
 noncomputable abbrev b := NumberField.integralBasis ℚ⟮y⟯
 noncomputable abbrev pb := IntermediateField.adjoin.powerBasis y_integral'
 
-lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
+lemma h_pb_gen_y : pb.gen = y := by rfl
 
+lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
+  #check Algebra.discr_powerBasis_eq_prod ℚ (AlgebraicClosure ℚ⟮y⟯) pb
+  have h_Qybar_inj : Function.Injective (algebraMap ℚ (AlgebraicClosure ↥ℚ⟮y⟯)) := by
+    sorry
+  -- #check Subfield.subtype_injective (K := AlgebraicClosure ℚ⟮y⟯) (s := ℚ)
+  apply h_Qybar_inj
+  -- have h : Field.toSemifield.toCommSemiring = Rat.commSemiring := rfl
+  -- rw [← h]
+  simp
+  have h := Algebra.discr_powerBasis_eq_prod ℚ (AlgebraicClosure ℚ⟮y⟯) pb
+  -- rw [h]
+  simp at h
+  -- rw [h _]
+  #check IntermediateField.algHomAdjoinIntegralEquiv ℚ (K := AlgebraicClosure ℚ⟮y⟯) y_integral'
+
+  #check IntermediateField.algHomAdjoinIntegralEquiv_symm_apply_gen
   sorry
 
 lemma discr_powbasis_integralbasis : ∃ (m : ℤ), Algebra.discr ℚ pb.basis = m ^ 2 * discr F := by
@@ -58,9 +74,7 @@ lemma discr_powbasis_integralbasis : ∃ (m : ℤ), Algebra.discr ℚ pb.basis =
         rw [pb.basis_eq_pow n]
         have h_pow_integral : IsIntegral ℤ (pb.gen ^ n.val) := by
           apply IsIntegral.pow
-
           apply IntermediateField.coe_isIntegral_iff.mp
-          have h_gen_y : pb.gen = y := by rfl
           exact y_integral
         apply RingHom.mem_range.mpr
         use ⟨pb.gen ^ n.val, h_pow_integral⟩
