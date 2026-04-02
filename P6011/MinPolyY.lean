@@ -8,6 +8,7 @@ import Mathlib.RingTheory.Polynomial.GaussLemma
 -- for degree 3
 import Mathlib.Algebra.Polynomial.Degree.SmallDegree
 
+import Brkhu.MinPoly
 import Brkhu.P6011.Defs
 
 set_option linter.style.emptyLine false
@@ -197,8 +198,11 @@ lemma hf_rat_root : aeval y f_rat = 0 := by
   exact hf_root
 
 
-lemma hf_discr : discr f = -588 := by
+theorem hf_discr : discr f = -588 := by
   rw [discr_of_degree_eq_three]
   · simp [f, coeff_X, coeff_one]
   · apply (degree_eq_iff_natDegree_eq_of_pos (by norm_num : 0 < 3)).mpr
     exact hf_natDeg
+
+theorem hf_rat_minpoly : minpoly ℚ y = f_rat := by
+  exact minpoly_from_monic_irreducible f_rat hf_rat_monic hf_rat_irreducible hf_rat_root

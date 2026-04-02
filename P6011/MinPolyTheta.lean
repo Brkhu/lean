@@ -2,6 +2,7 @@ import Mathlib.Algebra.Polynomial.SpecificDegree
 import Mathlib.Data.Nat.Prime.Int
 import Mathlib.NumberTheory.Padics.PadicVal.Basic
 
+import Brkhu.MinPoly
 import Brkhu.P6011.Defs
 
 set_option linter.style.emptyLine false
@@ -34,38 +35,7 @@ lemma minpoly_theta : minpoly ℚ θ = X ^ 3 - 28 := by
     rw [padicValNat_mul_pow_left 2 1 (by norm_num : 2 ≠ 7)] at hr
     omega
 
-
-  have h_min : ∀ (q : ℚ[X]), q.Monic → (aeval θ) q = 0 → f.degree ≤ q.degree := by
-    intros q h_q_monic h_q_root
-    let r := EuclideanDomain.gcd f q
-    have h_root_gcd : aeval θ r = 0 := by
-      apply root_gcd_iff_root_left_right.mpr
-      constructor
-      · exact h_root
-      · exact h_q_root
-    have h_div : r ∣ f := EuclideanDomain.gcd_dvd_left f q
-    have h_div' : r ∣ q := EuclideanDomain.gcd_dvd_right f q
-    obtain ⟨s, hs⟩ := dvd_def.mp h_div
-    have h := h_irreducible
-    rw [hs] at h
-    apply of_irreducible_mul at h
-    rcases h with h | h
-    · obtain ⟨u, ⟨h1, h2⟩⟩ := isUnit_iff.mp h
-      simp [← h2] at h_root_gcd
-      have h' := IsUnit.ne_zero h1
-      simp [h_root_gcd] at h'
-    · have h_assoc : Associated f r := by
-        rw [hs]
-        exact associated_mul_unit_left r s h
-      have h_degree : f.degree = r.degree := degree_eq_degree_of_associated h_assoc
-      have h' := Monic.ne_zero_of_polynomial_ne h_q_monic (by norm_num : (0 : ℚ[X]) ≠ 1)
-      have h'' := degree_le_of_dvd h_div' h'
-      rw [← h_degree] at h''
-      exact h''
-
-
-  subst f
-  exact (minpoly.unique ℚ θ h_monic h_root h_min).symm
+  exact minpoly_from_monic_irreducible f h_monic h_irreducible h_root
 
 theorem rank_F_eq_three : Module.finrank ℚ F = 3 := by
   dsimp only [F]
