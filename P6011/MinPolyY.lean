@@ -5,6 +5,8 @@ import Mathlib.Algebra.Polynomial.SpecificDegree
 import Mathlib.Algebra.Divisibility.Basic
 -- for Gauss's lemma
 import Mathlib.RingTheory.Polynomial.GaussLemma
+-- for degree 3
+import Mathlib.Algebra.Polynomial.Degree.SmallDegree
 
 import Brkhu.P6011.Defs
 
@@ -16,49 +18,30 @@ open Polynomial
 noncomputable abbrev f : ℤ[X] := X^3 + X^2 + C 5 * X - 1
 noncomputable abbrev f_rat : ℚ[X] := f.map (algebraMap ℤ ℚ)
 
+lemma hf_C : f = C 1 * X^3 + C 1 * X^2 + C 5 * X + C (-1) := by
+  dsimp only [f]
+  norm_num
+  rfl
 
 
 lemma hf_natDeg : natDegree f = 3 := by
-  apply natDegree_eq_of_le_of_coeff_ne_zero
-  · rw [natDegree_sub_eq_left_of_natDegree_lt]
-    · rw [natDegree_add_eq_left_of_natDegree_lt]
-      · rw [natDegree_add_eq_left_of_natDegree_lt]
-        · norm_num
-        · norm_num
-      · rw [natDegree_add_eq_left_of_natDegree_lt]
-        · norm_num
-        · norm_num
-    · rw [natDegree_add_eq_left_of_natDegree_lt]
-      · rw [natDegree_add_eq_left_of_natDegree_lt]
-        · norm_num
-        · norm_num
-      · rw [natDegree_add_eq_left_of_natDegree_lt]
-        · norm_num
-        · norm_num
-  · simp [f, coeff_X, coeff_one]
+  rw [hf_C, natDegree_cubic (by norm_num : (1 : ℤ) ≠ 0)]
 
 lemma hf_monic : Monic f := by
   apply (Monic.def).mpr
-  simp only [← coeff_natDegree, hf_natDeg]
-  simp only [f]
-  norm_num
-  simp [coeff_X, coeff_one]
+  rw [hf_C, leadingCoeff_cubic (by norm_num : (1 : ℤ) ≠ 0)]
 
 lemma hf_deg : degree f = 3 := by
-  rw [degree_eq_natDegree]
-  · norm_cast
-    exact hf_natDeg
-  · exact @Polynomial.Monic.ne_zero_of_ne ℤ _ (by norm_num : (0 : ℤ) ≠ 1) f hf_monic
+  rw [hf_C, degree_cubic (by norm_num : (1 : ℤ) ≠ 0)]
 
 lemma hf_nonzero : f ≠ 0 := by
   apply Polynomial.zero_le_degree_iff.mp
-  rw [hf_deg]
-  norm_num
+  simp [hf_deg]
 
 
 lemma hf_rat_natDeg : natDegree f_rat = 3 := by
   rw [natDegree_map_eq_iff.mpr]
-  · rw [hf_natDeg]
+  · exact hf_natDeg
   · left
     rw [Polynomial.Monic.leadingCoeff]
     · rw [Algebra.algebraMap_eq_smul_one]
@@ -178,7 +161,6 @@ lemma hf_rat_irreducible : Irreducible f_rat := by
     norm_num at haeval_num_den_zero
 
 lemma hf_irreducible : Irreducible f := by
-
   apply (Polynomial.IsPrimitive.Int.irreducible_iff_irreducible_map_cast _).mpr
   · exact hf_rat_irreducible
   · exact Polynomial.Monic.isPrimitive hf_monic
