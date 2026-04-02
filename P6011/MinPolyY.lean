@@ -100,28 +100,6 @@ lemma hf_rat_irreducible : Irreducible f_rat := by
     exact h
 
 
-
-  have h_num_abs_1 : num.natAbs = 1 := by
-    have hfrac_num_dvd_1 := num_dvd_of_is_root haeval_r_zero
-    norm_num at hfrac_num_dvd_1
-    have h_frac_num_abs_1 := (Int.isUnit_iff_natAbs_eq).mp (isUnit_of_dvd_one hfrac_num_dvd_1)
-    rw [← (Int.associated_iff_natAbs).mp (Rat.isFractionRingNum r)]
-    exact h_frac_num_abs_1
-
-  have h_den_1 : den = 1 := by
-    have hfrac_den_dvd_1 := den_dvd_of_is_root haeval_r_zero
-    rw [(Monic.def).mp hf_monic] at hfrac_den_dvd_1
-    have h_frac_den_abs_1 := (Int.isUnit_iff_natAbs_eq).mp (isUnit_of_dvd_one hfrac_den_dvd_1)
-    rw [Rat.isFractionRingDen r] at h_frac_den_abs_1
-    exact h_frac_den_abs_1
-
-
-  -- have haeval_num_den_zero := by
-  --   rw [← Rat.num_div_den r] at haeval_r_zero
-  --   simp [f] at haeval_r_zero
-
-
-
   have hnum : r.num.natAbs = 1 := by
     have hfrac_num_dvd_1 := num_dvd_of_is_root haeval_r_zero
     norm_num at hfrac_num_dvd_1
