@@ -7,6 +7,9 @@ import Mathlib.Algebra.Divisibility.Basic
 import Mathlib.RingTheory.Polynomial.GaussLemma
 -- for degree 3
 import Mathlib.Algebra.Polynomial.Degree.SmallDegree
+-- for rational root
+import Mathlib.RingTheory.Polynomial.RationalRoot
+import Mathlib.RingTheory.Localization.Rat
 
 import Brkhu.MinPoly
 import Brkhu.P6011.Defs
@@ -82,89 +85,76 @@ lemma hf_rat_irreducible : Irreducible f_rat := by
   let den : ℕ := r.den
   have hcoprime_num_den : IsCoprime num den := by
     exact Rat.isCoprime_num_den r
-
-  have haeval_num_den_zero : num ^ 3 + num ^ 2 * den + num * den ^ 2 * 5 - den ^ 3 = 0 := by
-    simp only [num, den]
-    have haeval_r_zero : aeval r f_rat = 0 := by
+  have haeval_r_zero : aeval r f = 0 := by
+    have h_rat_aeval_r_zero : aeval r f_rat = 0 := by
       apply (Polynomial.mem_roots_iff_aeval_eq_zero hf_rat_nonzero).mp hr
-    rw [← Rat.num_div_den r] at haeval_r_zero
-    simp[f_rat] at haeval_r_zero
-    field_simp at haeval_r_zero
-    norm_cast at haeval_r_zero
-    simp only [mul_add, Nat.cast_mul, Nat.cast_pow, Nat.cast_ofNat, ← pow_three, ← mul_assoc,
-      mul_zero, CharP.cast_eq_zero] at haeval_r_zero
-    rw [← pow_two] at haeval_r_zero
-    exact haeval_r_zero
+    dsimp only [f_rat] at h_rat_aeval_r_zero
+    rw [Polynomial.aeval_map_algebraMap ℚ] at h_rat_aeval_r_zero
+    exact h_rat_aeval_r_zero
+  have hsubst_r : r ^ 3 + r ^ 2 + 5 * r - 1 = 0 := by
+    have h := haeval_r_zero
+    simp only [f, eq_intCast, Int.cast_ofNat, aeval_sub, map_add, map_pow, aeval_X, map_mul,
+      map_one] at h
+    rw [(by simp : (5 : ℤ[X]) = C 5)] at h
+    simp only [aeval_C] at h
+    exact h
 
 
 
-  have hnum : num = 1 ∨ num = -1 := by
-    have hnum_dvd_den_3 : num ∣ den ^ 3 := by
-      have hnum_div : num ∣ 0 := by exact dvd_zero num
-      rw [← haeval_num_den_zero] at hnum_div
-      apply @dvd_sub ℤ _ num (num ^ 3 + num ^ 2 * ↑den + num * ↑den ^ 2 * 5) at hnum_div
-      · norm_num at hnum_div
-        exact hnum_div
-      · apply @dvd_add ℤ _ _ _ num (num ^ 3 + num ^ 2 * ↑den)
-        · apply @dvd_add ℤ _ _ _ num (num ^ 3)
-          · exact dvd_pow_self num (by norm_num : 3 ≠ 0)
-          · rw [pow_two, mul_assoc]
-            exact @dvd_mul_right ℤ _ num (num * den)
-        · rw [mul_assoc]
-          exact @dvd_mul_right ℤ _ num (↑den ^ 2 * 5)
+  have h_num_abs_1 : num.natAbs = 1 := by
+    have hfrac_num_dvd_1 := num_dvd_of_is_root haeval_r_zero
+    norm_num at hfrac_num_dvd_1
+    have h_frac_num_abs_1 := (Int.isUnit_iff_natAbs_eq).mp (isUnit_of_dvd_one hfrac_num_dvd_1)
+    rw [← (Int.associated_iff_natAbs).mp (Rat.isFractionRingNum r)]
+    exact h_frac_num_abs_1
 
-    have hnum_unit : IsUnit num := by
-      have hcoprime_num_den3 : IsCoprime num (den ^ 3) := by
-        exact IsCoprime.pow_right hcoprime_num_den
-      exact IsCoprime.isUnit_of_dvd hcoprime_num_den3 hnum_dvd_den_3
+  have h_den_1 : den = 1 := by
+    have hfrac_den_dvd_1 := den_dvd_of_is_root haeval_r_zero
+    rw [(Monic.def).mp hf_monic] at hfrac_den_dvd_1
+    have h_frac_den_abs_1 := (Int.isUnit_iff_natAbs_eq).mp (isUnit_of_dvd_one hfrac_den_dvd_1)
+    rw [Rat.isFractionRingDen r] at h_frac_den_abs_1
+    exact h_frac_den_abs_1
 
-    exact Int.isUnit_eq_one_or hnum_unit
 
-  have hden : den = 1 := by
-    let denZ : ℤ := den
-    have hden_dvd_num_3 : denZ ∣ num ^ 3 := by
-      have hden_div : denZ ∣ 0 := by exact dvd_zero denZ
-      rw [← haeval_num_den_zero] at hden_div
-      apply @dvd_add ℤ _ _ _ denZ (den ^ 3) at hden_div
-      · norm_num at hden_div
-        apply @dvd_sub ℤ _ denZ (num * ↑den ^ 2 * 5) at hden_div
-        · apply dvd_sub_comm.mp at hden_div
-          norm_num at hden_div
-          apply @dvd_sub ℤ _ denZ (num ^ 2 * ↑den) at hden_div
-          · apply dvd_sub_comm.mp at hden_div
-            norm_num at hden_div
-            exact hden_div
-          · exact @dvd_mul_left ℤ _ denZ (num ^ 2)
-        · rw [mul_assoc, ← mul_comm 5, ← mul_assoc, pow_two, ← mul_assoc]
-          exact @dvd_mul_left ℤ _ denZ (num * 5 * den)
-      · exact dvd_pow_self denZ (by norm_num : 3 ≠ 0)
+  -- have haeval_num_den_zero := by
+  --   rw [← Rat.num_div_den r] at haeval_r_zero
+  --   simp [f] at haeval_r_zero
 
-    have hden_unit : IsUnit denZ := by
-      have hcoprime_den_num3 : IsCoprime denZ (num ^ 3) := by
-        exact IsCoprime.pow_right hcoprime_num_den.symm
-      exact IsCoprime.isUnit_of_dvd hcoprime_den_num3 hden_dvd_num_3
 
-    apply Int.isUnit_eq_one_or at hden_unit
-    cases hden_unit with
-    | inl hden_one =>
-      dsimp only [denZ] at hden_one
-      norm_cast at hden_one
-    | inr hden_neg_one =>
-      dsimp only [denZ] at hden_neg_one
-      norm_cast at hden_neg_one
 
+  have hnum : r.num.natAbs = 1 := by
+    have hfrac_num_dvd_1 := num_dvd_of_is_root haeval_r_zero
+    norm_num at hfrac_num_dvd_1
+    have h_frac_num_abs_1 := (Int.isUnit_iff_natAbs_eq).mp (isUnit_of_dvd_one hfrac_num_dvd_1)
+    rw [← (Int.associated_iff_natAbs).mp (Rat.isFractionRingNum r)]
+    exact h_frac_num_abs_1
+
+  have hden : r.den = 1 := by
+    have hfrac_den_dvd_1 := den_dvd_of_is_root haeval_r_zero
+    rw [(Monic.def).mp hf_monic] at hfrac_den_dvd_1
+    have h_frac_den_abs_1 := (Int.isUnit_iff_natAbs_eq).mp (isUnit_of_dvd_one hfrac_den_dvd_1)
+    rw [Rat.isFractionRingDen r] at h_frac_den_abs_1
+    exact h_frac_den_abs_1
+
+  apply Int.isUnit_iff_natAbs_eq.mpr at hnum
+  apply Int.isUnit_iff.mp at hnum
   cases hnum with
   | inl hnum_one =>
-    rw [hnum_one, hden] at haeval_num_den_zero
-    norm_num at haeval_num_den_zero
+    have hr_one : r = 1 := by
+      rw [← Rat.num_div_den r, hnum_one, hden]
+      norm_num
+    rw [hr_one] at hsubst_r
+    norm_num at hsubst_r
   | inr hnum_neg_one =>
-    rw [hnum_neg_one, hden] at haeval_num_den_zero
-    norm_num at haeval_num_den_zero
+    have hr_neg_one : r = -1 := by
+      rw [← Rat.num_div_den r, hnum_neg_one, hden]
+      norm_num
+    rw [hr_neg_one] at hsubst_r
+    norm_num at hsubst_r
 
 lemma hf_irreducible : Irreducible f := by
-  apply (Polynomial.IsPrimitive.Int.irreducible_iff_irreducible_map_cast _).mpr
-  · exact hf_rat_irreducible
-  · exact Polynomial.Monic.isPrimitive hf_monic
+  apply (IsPrimitive.Int.irreducible_iff_irreducible_map_cast (Monic.isPrimitive hf_monic)).mpr
+  exact hf_rat_irreducible
 
 
 lemma hf_root : aeval y f = 0 := by
