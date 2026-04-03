@@ -9,6 +9,11 @@ import Mathlib.FieldTheory.IntermediateField.Adjoin.Defs
 
 import Mathlib.NumberTheory.NumberField.Discriminant.Defs
 
+-- for cubic
+import Mathlib.Algebra.CubicDiscriminant
+
+import Mathlib.FieldTheory.IsAlgClosed.Basic
+
 
 import Brkhu.P6011.Defs
 import Brkhu.P6011.MinPolyTheta
@@ -32,21 +37,96 @@ noncomputable abbrev pb := IntermediateField.adjoin.powerBasis y_integral'
 lemma h_pb_gen_y : pb.gen = y := by rfl
 
 lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
-  #check Algebra.discr_powerBasis_eq_prod ℚ (AlgebraicClosure ℚ⟮y⟯) pb
-  have h_Qybar_inj : Function.Injective (algebraMap ℚ (AlgebraicClosure ↥ℚ⟮y⟯)) := by
+  have h' := resultant_deriv (f := f) (by rw [hf_deg]; norm_num)
+  rw [hf_natDeg, (Monic.def).mp hf_monic] at h'
+  simp only [Nat.add_one_sub_one, Int.reduceNeg, Nat.reduceMul, Nat.reduceDiv, Int.reducePow,
+    mul_one, neg_mul, one_mul] at h'
+  rw [Int.eq_neg_comm] at h'
+
+  rw [h']
+  -- simp
+
+  have h := Algebra.discr_powerBasis_eq_prod _ (AlgebraicClosure ℚ⟮y⟯) pb
+  -- rw [h]
+  simp at h
+
+  -- have h' : (algebraMap ℚ (AlgebraicClosure ↥ℚ⟮y⟯)) (Algebra.discr ℚ ⇑pb.basis) =
+  -- rw [h _]
+  #check IntermediateField.algHomAdjoinIntegralEquiv _ (K := AlgebraicClosure ℚ) y_integral'
+
+  #check IntermediateField.algHomAdjoinIntegralEquiv_symm_apply_gen
+
+  #check Cubic.discr_eq_prod_three_roots
+
+  #check resultant_deriv (f := f) (by rw [hf_deg]; norm_num)
+
+  #check resultant_map_map f f.derivative f.natDegree f.derivative.natDegree (algebraMap ℤ ℚ)
+
+
+  have h_to_rat : (f.resultant (derivative f) 3 2) =
+      f_rat.resultant f_rat.derivative 3
+      2 := by
+    rw [derivative_map]
+    rw [resultant_map_map f f.derivative 3 2 (algebraMap ℤ ℚ)]
+    rfl
+  simp only [Int.cast_neg, IntermediateField.adjoin.powerBasis_dim]
+  rw [h_to_rat]
+  rw [neg_eq_iff_eq_neg]
+
+  let f_split : (AlgebraicClosure ℚ)[X] := f_rat.map (algebraMap ℚ (AlgebraicClosure ℚ))
+  have h_f_split_natDeg : f_split.natDegree = 3 := by
+    dsimp only [f_split]
+    rw [Polynomial.natDegree_map (algebraMap ℚ (AlgebraicClosure ℚ)), hf_rat_natDeg]
+  have h_f_split_monic : Monic f_split := by
+    apply (Monic.def).mpr
+    dsimp only [f_split]
+    rw [Polynomial.leadingCoeff_map (algebraMap ℚ (AlgebraicClosure ℚ)), hf_rat_monic]
+    simp
+
+  have h_to_split : algebraMap ℚ (AlgebraicClosure ℚ) (f_rat.resultant (derivative f_rat) 3 2) =
+      f_split.resultant f_split.derivative 3
+      2 := by
+    dsimp only [f_split]
+    rw [← resultant_map_map f_rat f_rat.derivative 3 2 (algebraMap ℚ (AlgebraicClosure ℚ))]
+    rw [derivative_map f_rat]
+
+  -- #check Algebra.discr_powerBasis_eq_prod ℚ (AlgebraicClosure ℚ⟮y⟯) pb
+  have h_Qybar_inj : Function.Injective (algebraMap ℚ (AlgebraicClosure ℚ)) := by
     sorry
-  -- #check Subfield.subtype_injective (K := AlgebraicClosure ℚ⟮y⟯) (s := ℚ)
+  #check Subfield.subtype_injective (K := AlgebraicClosure ℚ)
   apply h_Qybar_inj
   -- have h : Field.toSemifield.toCommSemiring = Rat.commSemiring := rfl
   -- rw [← h]
-  simp
-  have h := Algebra.discr_powerBasis_eq_prod ℚ (AlgebraicClosure ℚ⟮y⟯) pb
-  -- rw [h]
-  simp at h
-  -- rw [h _]
-  #check IntermediateField.algHomAdjoinIntegralEquiv ℚ (K := AlgebraicClosure ℚ⟮y⟯) y_integral'
+  -- simp
 
-  #check IntermediateField.algHomAdjoinIntegralEquiv_symm_apply_gen
+  rw [h_to_split]
+
+
+  #check Irreducible.separable
+
+  -- simp only [Int.cast_neg, IntermediateField.adjoin.powerBasis_dim]
+  -- rw [h'']
+
+
+  #check resultant_map_map f_rat f_rat.derivative f_rat.natDegree f_rat.derivative.natDegree (algebraMap ℚ (AlgebraicClosure ℚ))
+
+  have hf'_natDeg_leq : f_split.derivative.natDegree ≤ 2 := by
+    have h_leq := Polynomial.natDegree_derivative_le f_split
+    rw [h_f_split_natDeg, (by norm_num : 3 - 1 = 2)] at h_leq
+    exact h_leq
+
+  have h_to_prod := resultant_eq_prod_eval f_split f_split.derivative (f_split.natDegree - 1)
+      (Polynomial.natDegree_derivative_le f_split) (IsAlgClosed.splits f_split)
+  rw [h_f_split_natDeg, h_f_split_monic] at h_to_prod
+  norm_num at h_to_prod
+
+  rw [h_to_prod]
+
+  #check Polynomial.Splits.eval_root_derivative
+  -- rw [Polynomial.Splits.eval_root_derivative]
+
+
+
   sorry
 
 lemma discr_powbasis_integralbasis : ∃ (m : ℤ), Algebra.discr ℚ pb.basis = m ^ 2 * discr F := by
