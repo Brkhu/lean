@@ -14,6 +14,9 @@ import Mathlib.Algebra.CubicDiscriminant
 
 import Mathlib.FieldTheory.IsAlgClosed.Basic
 
+import Mathlib.Analysis.Complex.Polynomial.Basic
+import Mathlib.Data.Multiset.MapFold
+
 
 import Brkhu.P6011.Defs
 import Brkhu.P6011.MinPolyTheta
@@ -73,25 +76,38 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
   rw [h_to_rat]
   rw [neg_eq_iff_eq_neg]
 
-  let f_split : (AlgebraicClosure ℚ)[X] := f_rat.map (algebraMap ℚ (AlgebraicClosure ℚ))
+  let f_split : ℂ[X] := f_rat.map (algebraMap ℚ ℂ)
+  have h_f_split_deg : f_split.degree = 3 := by
+    dsimp only [f_split]
+    rw [Polynomial.degree_map f_rat (algebraMap ℚ ℂ), hf_rat_deg]
   have h_f_split_natDeg : f_split.natDegree = 3 := by
     dsimp only [f_split]
-    rw [Polynomial.natDegree_map (algebraMap ℚ (AlgebraicClosure ℚ)), hf_rat_natDeg]
+    rw [Polynomial.natDegree_map (algebraMap ℚ ℂ), hf_rat_natDeg]
   have h_f_split_monic : Monic f_split := by
     apply (Monic.def).mpr
     dsimp only [f_split]
-    rw [Polynomial.leadingCoeff_map (algebraMap ℚ (AlgebraicClosure ℚ)), hf_rat_monic]
+    rw [Polynomial.leadingCoeff_map (algebraMap ℚ ℂ), hf_rat_monic]
     simp
+  have h_f_split_splits : Splits f_split := by
+    exact IsAlgClosed.splits f_split
+  have h_f_split_nonzero : f_split ≠ 0 := by
+    exact Polynomial.Monic.ne_zero_of_ne (by norm_num) h_f_split_monic
+  have h_f_split_root_nodup : Multiset.Nodup f_split.roots := by
+    apply nodup_roots
+    have h_f_rat_separable : Separable f_rat := by
+      exact Irreducible.separable hf_rat_irreducible
+    dsimp only [f_split]
+    exact Separable.map h_f_rat_separable
 
-  have h_to_split : algebraMap ℚ (AlgebraicClosure ℚ) (f_rat.resultant (derivative f_rat) 3 2) =
+  have h_to_split : algebraMap ℚ ℂ (f_rat.resultant (derivative f_rat) 3 2) =
       f_split.resultant f_split.derivative 3
       2 := by
     dsimp only [f_split]
-    rw [← resultant_map_map f_rat f_rat.derivative 3 2 (algebraMap ℚ (AlgebraicClosure ℚ))]
+    rw [← resultant_map_map f_rat f_rat.derivative 3 2 (algebraMap ℚ ℂ)]
     rw [derivative_map f_rat]
 
   -- #check Algebra.discr_powerBasis_eq_prod ℚ (AlgebraicClosure ℚ⟮y⟯) pb
-  have h_Qybar_inj : Function.Injective (algebraMap ℚ (AlgebraicClosure ℚ)) := by
+  have h_Qybar_inj : Function.Injective (algebraMap ℚ ℂ) := by
     sorry
   #check Subfield.subtype_injective (K := AlgebraicClosure ℚ)
   apply h_Qybar_inj
@@ -108,22 +124,109 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
   -- rw [h'']
 
 
-  #check resultant_map_map f_rat f_rat.derivative f_rat.natDegree f_rat.derivative.natDegree (algebraMap ℚ (AlgebraicClosure ℚ))
+  #check resultant_map_map f_rat f_rat.derivative f_rat.natDegree f_rat.derivative.natDegree (algebraMap ℚ ℂ)
 
-  have hf'_natDeg_leq : f_split.derivative.natDegree ≤ 2 := by
-    have h_leq := Polynomial.natDegree_derivative_le f_split
-    rw [h_f_split_natDeg, (by norm_num : 3 - 1 = 2)] at h_leq
-    exact h_leq
+  -- have hf'_natDeg_leq : f_split.derivative.natDegree ≤ 2 := by
+  --   have h_leq := Polynomial.natDegree_derivative_le f_split
+  --   rw [h_f_split_natDeg, (by norm_num : 3 - 1 = 2)] at h_leq
+  --   exact h_leq
 
   have h_to_prod := resultant_eq_prod_eval f_split f_split.derivative (f_split.natDegree - 1)
-      (Polynomial.natDegree_derivative_le f_split) (IsAlgClosed.splits f_split)
+      (Polynomial.natDegree_derivative_le f_split) h_f_split_splits
   rw [h_f_split_natDeg, h_f_split_monic] at h_to_prod
   norm_num at h_to_prod
 
   rw [h_to_prod]
 
-  #check Polynomial.Splits.eval_root_derivative
+  -- #check Polynomial.Splits.eval_root_derivative
   -- rw [Polynomial.Splits.eval_root_derivative]
+
+  have h_to_double_prod : (Multiset.map (fun x ↦ eval x (derivative f_split)) f_split.roots).prod =
+      (Multiset.map (fun x ↦ (Multiset.map (fun x_1 ↦ x - x_1) (f_split.roots.erase x)).prod)
+      f_split.roots).prod := by
+    congr 1
+    -- #check map_congr
+    have h_eval_deriv : ∀ x ∈ f_split.roots, eval x (derivative f_split) = (Multiset.map
+        (fun x_1 ↦ x - x_1) (f_split.roots.erase x)).prod := by
+      intro _ hx
+      exact Polynomial.Splits.eval_root_derivative h_f_split_splits h_f_split_monic hx
+    exact Multiset.map_congr (by rfl) h_eval_deriv
+
+
+  rw [h_to_double_prod]
+
+
+
+  -- #check Polynomial.Splits.degree_eq_card_roots h_f_split_splits h_f_split_nonzero
+  -- #check Fintype.card_eq (α := Fin)
+  -- #check Fintype.card_fin
+
+  -- let index : Fin 3 ≃ f_split.roots := by
+  --   have h_root_card := Polynomial.Splits.degree_eq_card_roots h_f_split_splits h_f_split_nonzero
+  --   rw [h_f_split_deg] at h_root_card
+  --   norm_cast at h_root_card
+  --   apply Fintype.equivOfCardEq
+  --   rw [Multiset.card_coe, Fintype.card_fin, h_root_card]
+
+  -- #check index.toFun
+  -- #check index.symm.toFun
+  -- -- #check
+
+  -- #check finprod_comp index.toFun
+  #check Finset.prod_multiset_map_count
+  #check Finset.prod_mk
+  #check Finset.prod_mk f_split.roots h_f_split_root_nodup
+
+
+
+  #check Multiset.map_map
+
+  #check Multiset.toFinset_eq
+  #check Multiset.toFinset_eq h_f_split_root_nodup
+
+
+  -- rw [← Finset.prod_mk f_split.roots h_f_split_root_nodup]
+  -- rw [Multiset.toFinset_eq h_f_split_root_nodup]
+
+
+
+  -- have h_to_fin_double_prod : (Multiset.map (fun x ↦ (Multiset.map (fun x_1 ↦ x - x_1)
+  --     (f_split.roots.erase x)).prod) f_split.roots).prod = 1 := by
+    -- congr 1
+    -- -- #check map_congr
+    -- have h_eval_deriv : ∀ x ∈ f_split.roots, eval x (derivative f_split) = (Multiset.map
+    --     (fun x_1 ↦ x - x_1) (f_split.roots.erase x)).prod := by
+    --   intro _ hx
+    --   exact Polynomial.Splits.eval_root_derivative h_f_split_splits h_f_split_monic hx
+    -- exact Multiset.map_congr (by rfl) h_eval_deriv
+
+    -- sorry
+
+  have h_to_fin_double_prod : (Multiset.map (fun x ↦ (Multiset.map (fun x_1 ↦ x - x_1)
+      (f_split.roots.erase x)).prod) f_split.roots).prod
+      = ∏ x : f_split.roots.toFinset, ∏ x_1 ∈ f_split.roots.toFinset.erase x, (x - x_1) := by
+
+    rw [← Finset.prod_mk f_split.roots h_f_split_root_nodup]
+    rw [Multiset.toFinset_eq h_f_split_root_nodup]
+
+    rw [← Finset.prod_coe_sort]
+
+    rw [Fintype.prod_congr]
+    intro x
+    have h_nodup_erase : (f_split.roots.erase x).Nodup := by
+      apply h_f_split_root_nodup.erase
+    rw [← Finset.prod_mk (f_split.roots.erase x) h_nodup_erase]
+    rw [Multiset.toFinset_eq h_nodup_erase]
+
+    have h_erase_eq_erase : (f_split.roots.erase x).toFinset = f_split.roots.toFinset.erase x := by
+      apply Finset.mk.congr_simp
+      rw [(Multiset.dedup_eq_self).mpr h_nodup_erase]
+      simp only [Multiset.toFinset_val]
+      rw [(Multiset.dedup_eq_self).mpr h_f_split_root_nodup]
+    rw [h_erase_eq_erase]
+
+  rw [h_to_fin_double_prod]
+
 
 
 
