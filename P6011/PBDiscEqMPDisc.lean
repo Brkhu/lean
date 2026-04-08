@@ -49,9 +49,9 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
   rw [h']
   -- simp
 
-  have h := Algebra.discr_powerBasis_eq_prod _ (AlgebraicClosure ℚ⟮y⟯) pb
-  -- rw [h]
-  simp at h
+  -- have h := Algebra.discr_powerBasis_eq_prod _ (AlgebraicClosure ℚ⟮y⟯) pb
+  -- -- rw [h]
+  -- simp at h
 
   -- have h' : (algebraMap ℚ (AlgebraicClosure ↥ℚ⟮y⟯)) (Algebra.discr ℚ ⇑pb.basis) =
   -- rw [h _]
@@ -328,9 +328,39 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
   #check Set.Iio_union_Ioi (α := Fin 3)
   #check Finset.compl_singleton
 
+  have h_to_ioi_iio_prod : ∏ x : Fin 3, ∏ x_1 ∈ (Finset.univ : Finset (Fin 3)).erase x,
+      ((index x : ℂ) - index x_1)
+      = (∏ x : Fin 3, ∏ x_1 ∈ Finset.Ioi x, ((index x : ℂ) - index x_1)) *
+      ∏ x : Fin 3, ∏ x_1 ∈ Finset.Iio x, ((index x : ℂ) - index x_1) := by
+
+    rw [← Finset.prod_mul_distrib]
+
+    rw [Fintype.prod_congr]
+    intro x
+    have h_erase_eq_ioi_cup_iio : Finset.univ.erase x = Finset.Ioi x ∪ Finset.Iio x := by
+      apply Finset.ext
+      intro x_1
+      simp only [Finset.mem_erase, Finset.mem_univ, and_true, Finset.mem_union, Finset.mem_Ioi,
+        Finset.mem_Iio]
+      exact lt_or_gt_iff_ne'.symm
+    have h_ioi_iio_disjoint : Disjoint (Finset.Ioi x) (Finset.Iio x) := by
+      exact Finset.disjoint_Ioi_Iio x
+
+    rw [h_erase_eq_ioi_cup_iio]
+
+    #check Finset.prod_union
+    #check Finset.prod_union h_ioi_iio_disjoint
+
+    rw [Finset.prod_union h_ioi_iio_disjoint]
+
+
+
+
   have h_to_ioi_prod : ∏ x : Fin 3, ∏ x_1 ∈ (Finset.univ : Finset (Fin 3)).erase x,
       ((index x : ℂ) - index x_1)
-      = - ∏ x : Fin 3, ∏ x_1 ∈ Finset.Ioi x, ((index x : ℂ) - index x_1) ^ 2 := by
+      = ∏ x : Fin 3, ∏ x_1 ∈ Finset.Ioi x, - ((index x : ℂ) - index x_1) ^ 2 := by
+
+
 
 
     sorry
