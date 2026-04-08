@@ -272,11 +272,53 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
       -- rw [Finset.prod_bij (fun y _ => (index y : ℂ))]
       -- goal 1 : ∀ a ∈ Finset.univ.erase x, ↑(index a) ∈ f_split.roots.toFinset.erase ↑(index x)
       -- · intro a ha
-      --   rw [Finset.map_erase index.toEmbedding]
+        -- rw [Finset.map_erase index.toEmbedding]
 
       -- rw [Fintype.prod_equiv]
-      sorry
+
+      -- #check Finset.prod_nbij (s := Finset.univ.erase x) (t := f_split.roots.toFinset.erase (index x)) index
+      #check Finset.prod_image
+
+      let index_C : Fin 3 → ℂ := fun s ↦ (index s).val
+      have h_index_inj' : Set.InjOn index_C (Finset.univ.erase x) := by
+        intro i hi j hj hij
+        apply index.injective
+        ext
+        exact hij
+
+      have h_index_image : Finset.image index_C (Finset.univ.erase x) = f_split.roots.toFinset.erase
+          (index x) := by
+        apply Finset.ext
+        intro x_1
+        simp only [Finset.mem_image, Finset.mem_erase, Finset.mem_univ, and_true, index_C]
+        constructor
+        · intro h1
+          obtain ⟨a, ha, hai⟩ := h1
+          constructor
+          · rw [← hai]
+            norm_cast
+            exact index.injective.ne ha
+          · rw [← hai]
+            simp
+        · intro h2
+          obtain ⟨hxi, hx⟩ := h2
+          use index.symm ⟨x_1, hx⟩
+          constructor
+          · symm
+            apply index.apply_eq_iff_eq_symm_apply.ne.mp
+            apply Subtype.ext_iff.ne.mpr
+            rw [Subtype.coe_mk x_1 hx]
+            exact hxi.symm
+          · rw [index.apply_symm_apply]
+
+      rw [← h_index_image]
+      rw [Finset.prod_image h_index_inj']
+
+      -- sorry
     rw [Fintype.prod_equiv index _ _ h_index_map]
+
+  rw [h_to_fin_prod]
+
 
   #check Finset.prod_equiv index _ _
   #check Finset.prod_map Finset.univ index.toEmbedding
