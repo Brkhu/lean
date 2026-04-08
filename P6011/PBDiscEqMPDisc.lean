@@ -210,6 +210,7 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
     rw [Multiset.toFinset_eq h_f_split_root_nodup]
 
     rw [← Finset.prod_coe_sort]
+    -- rw [← Finset.prod_coe_sort f_split.roots.toFinset]
 
     rw [Fintype.prod_congr]
     intro x
@@ -228,7 +229,72 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
   rw [h_to_fin_double_prod]
 
 
+  let index : Fin 3 ≃ f_split.roots.toFinset := by
+    have h_root_card := Polynomial.Splits.degree_eq_card_roots h_f_split_splits h_f_split_nonzero
+    rw [h_f_split_deg] at h_root_card
+    norm_cast at h_root_card
+    apply Fintype.equivOfCardEq
+    -- #check Multiset.toFinset_card_of_nodup h_f_split_root_nodup
+    simp only [Fintype.card_fin, Multiset.mem_toFinset, mem_roots', ne_eq, IsRoot.def,
+      Fintype.card_coe, Multiset.toFinset_card_of_nodup h_f_split_root_nodup]
+    rw [h_root_card]
 
+  #check index.toFun
+  #check index.symm.toFun
+  -- #check
+
+  #check finprod_comp index.toFun
+
+  #check finprod_comp
+
+
+  -- let sub_fun : ℂ × ℂ → ℂ := fun p ↦ if p.1 = p.2 then 1 else p.1 - p.2
+
+  have h_to_fin_prod : ∏ x : f_split.roots.toFinset, ∏ x_1 ∈ f_split.roots.toFinset.erase x,
+      (x - x_1) =
+      ∏ x : Fin 3, ∏ x_1 ∈ (Finset.univ : Finset (Fin 3)).erase x, ((index x : ℂ) - index x_1) := by
+    -- rw [Finset.prod_equiv index]
+    let index_map_f : Fin 3 → ℂ := (fun x ↦ ∏ x_1 ∈ (Finset.univ : Finset (Fin 3)).erase x,
+        ((index x : ℂ) - index x_1))
+    let index_map_g : f_split.roots.toFinset → ℂ := (fun (ix : f_split.roots.toFinset) ↦
+        ∏ x_1 ∈ f_split.roots.toFinset.erase ix, (ix - x_1))
+    have h_index_map : ∀ (x : Fin 3), index_map_f x = index_map_g (index x) := by
+      intro x
+      dsimp [index_map_f, index_map_g]
+
+      -- rw [← Finset.prod_coe_sort]
+      -- rw [← Finset.prod_coe_sort (f_split.roots.toFinset.erase (index x))]
+
+      #check Finset.prod_bij
+      -- let index_map := fun y hy => (index y : ℂ)
+      #check Finset.prod_bij (fun y _ => (index y : ℂ)) _
+
+      -- rw [Finset.prod_bij (fun y _ => (index y : ℂ))]
+      -- goal 1 : ∀ a ∈ Finset.univ.erase x, ↑(index a) ∈ f_split.roots.toFinset.erase ↑(index x)
+      -- · intro a ha
+      --   rw [Finset.map_erase index.toEmbedding]
+
+      -- rw [Fintype.prod_equiv]
+      sorry
+    rw [Fintype.prod_equiv index _ _ h_index_map]
+
+  #check Finset.prod_equiv index _ _
+  #check Finset.prod_map Finset.univ index.toEmbedding
+  #check Fintype.prod_equiv index
+
+  #check Set.Iio_union_Ioi
+  #check Set.Iio_union_Ioi (α := Fin 3)
+  #check Finset.compl_singleton
+
+  have h_to_ioi_prod : ∏ x : Fin 3, ∏ x_1 ∈ (Finset.univ : Finset (Fin 3)).erase x,
+      ((index x : ℂ) - index x_1)
+      = - ∏ x : Fin 3, ∏ x_1 ∈ Finset.Ioi x, ((index x : ℂ) - index x_1) ^ 2 := by
+
+
+    sorry
+
+
+  --   sorry
 
   sorry
 
