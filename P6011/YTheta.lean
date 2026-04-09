@@ -1,6 +1,6 @@
-import Brkhu.P6011.Defs
-import Brkhu.P6011.MinPolyTheta
-import Brkhu.P6011.MinPolyY
+import brkhu.P6011.Defs
+import brkhu.P6011.MinPolyTheta
+import brkhu.P6011.MinPolyY
 
 
 set_option linter.style.emptyLine false

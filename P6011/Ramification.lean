@@ -10,8 +10,8 @@ import Mathlib.NumberTheory.RamificationInertia.Galois
 import Mathlib.RingTheory.Ideal.NatInt
 
 
-import Brkhu.P6011.Defs
-import Brkhu.P6011.MinPolyTheta
+import brkhu.P6011.Defs
+import brkhu.P6011.MinPolyTheta
 
 
 set_option linter.style.emptyLine false

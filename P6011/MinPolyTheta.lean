@@ -2,8 +2,8 @@ import Mathlib.Algebra.Polynomial.SpecificDegree
 import Mathlib.Data.Nat.Prime.Int
 import Mathlib.NumberTheory.Padics.PadicVal.Basic
 
-import Brkhu.MinPoly
-import Brkhu.P6011.Defs
+import brkhu.MinPoly
+import brkhu.P6011.Defs
 
 set_option linter.style.emptyLine false
 

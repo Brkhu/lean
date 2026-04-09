@@ -11,10 +11,10 @@ import Mathlib.Analysis.Complex.Polynomial.Basic
 import Mathlib.Data.Multiset.MapFold
 
 
-import Brkhu.P6011.Defs
-import Brkhu.P6011.MinPolyTheta
-import Brkhu.P6011.MinPolyY
-import Brkhu.P6011.YTheta
+import brkhu.P6011.Defs
+import brkhu.P6011.MinPolyTheta
+import brkhu.P6011.MinPolyY
+import brkhu.P6011.YTheta
 
 
 set_option linter.style.emptyLine false

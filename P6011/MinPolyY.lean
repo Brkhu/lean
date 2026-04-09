@@ -11,8 +11,8 @@ import Mathlib.Algebra.Polynomial.Degree.SmallDegree
 import Mathlib.RingTheory.Polynomial.RationalRoot
 import Mathlib.RingTheory.Localization.Rat
 
-import Brkhu.MinPoly
-import Brkhu.P6011.Defs
+import brkhu.MinPoly
+import brkhu.P6011.Defs
 
 set_option linter.style.emptyLine false
 
