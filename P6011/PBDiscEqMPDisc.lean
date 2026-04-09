@@ -359,7 +359,7 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
 
   have h_to_ioi_prod : (∏ x, ∏ x_1 ∈ Ioi x, ((index x : ℂ) - index x_1)) *
       ∏ x, ∏ x_1 ∈ Iio x, ((index x : ℂ) - index x_1)
-      = - ∏ x : Fin (minpoly ℚ y).natDegree, ∏ x_1 ∈ Ioi x, ((index x : ℂ) - index x_1) ^ 2 := by
+      = - ∏ x : Fin (minpoly ℚ y).natDegree, ∏ x_1 ∈ Ioi x, ((index x_1 : ℂ) - index x) ^ 2 := by
 
     have h_iio_to_with : ∏ x, ∏ x_1 ∈ Iio x, ((index x : ℂ) - index x_1) =
         ∏ x, ∏ x_1 with x_1 < x, ((index x : ℂ) - index x_1) := by
@@ -437,7 +437,7 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
     rw [← prod_mul_distrib]
     congr
     ext x_1
-    rw [pow_two]
+    ring_nf
 
   rw [h_to_ioi_prod]
 
@@ -496,14 +496,14 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
 
   let y' := IntermediateField.AdjoinSimple.gen ℚ y
 
-  have h_to_index'' : ∏ x, ∏ x_1 ∈ Ioi x, ((index x : ℂ) - index x_1) ^ 2 =
-      ∏ x, ∏ x_1 ∈ Ioi x, ((index'' x) y' - (index'' x_1) y') ^ 2 := by
-    rw [Fintype.prod_congr]
-    intro x
-    rw [← Finset.prod_coe_sort (Ioi x)]
-    rw [← Finset.prod_coe_sort (Ioi x)]
+  have h_to_index'' : ∏ x, ∏ x_1 ∈ Ioi x, ((index x_1 : ℂ) - index x) ^ 2 =
+      ∏ x, ∏ x_1 ∈ Ioi x, ((index'' x_1) y' - (index'' x) y') ^ 2 := by
     rw [Fintype.prod_congr]
     intro x_1
+    rw [← Finset.prod_coe_sort (Ioi x_1)]
+    rw [← Finset.prod_coe_sort (Ioi x_1)]
+    rw [Fintype.prod_congr]
+    intro x
     have h_index_index'' : ∀ x, index x = (index'' x) y' := by
       intro x
       dsimp only [index'']
@@ -533,11 +533,13 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
 
   have h := Algebra.discr_powerBasis_eq_prod ℚ ℂ pb
   -- rw [h]
-  simp at h
+  simp only [IntermediateField.adjoin.powerBasis_dim, eq_ratCast,
+    IntermediateField.adjoin.powerBasis_gen] at h
   -- rw [hf_rat_minpoly] at h
 
   erw [h index'']
   dsimp only [index'', y']
+  rfl
 
 
 lemma discr_powbasis_integralbasis : ∃ (m : ℤ), Algebra.discr ℚ pb.basis = m ^ 2 * discr F := by
