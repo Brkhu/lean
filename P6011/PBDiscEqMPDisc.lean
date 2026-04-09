@@ -27,7 +27,7 @@ import Brkhu.P6011.YTheta
 set_option linter.style.emptyLine false
 
 open scoped IntermediateField
-open Polynomial NumberField
+open Polynomial NumberField Finset
 
 
 variable {A B : Type*} [CommRing A] [CommRing B] [Algebra A B]
@@ -173,9 +173,9 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
   -- -- #check
 
   -- #check finprod_comp index.toFun
-  #check Finset.prod_multiset_map_count
-  #check Finset.prod_mk
-  #check Finset.prod_mk f_split.roots h_f_split_root_nodup
+  #check prod_multiset_map_count
+  #check prod_mk
+  #check prod_mk f_split.roots h_f_split_root_nodup
 
 
 
@@ -185,7 +185,7 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
   #check Multiset.toFinset_eq h_f_split_root_nodup
 
 
-  -- rw [← Finset.prod_mk f_split.roots h_f_split_root_nodup]
+  -- rw [← prod_mk f_split.roots h_f_split_root_nodup]
   -- rw [Multiset.toFinset_eq h_f_split_root_nodup]
 
 
@@ -206,17 +206,17 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
       (f_split.roots.erase x)).prod) f_split.roots).prod
       = ∏ x : f_split.roots.toFinset, ∏ x_1 ∈ f_split.roots.toFinset.erase x, (x - x_1) := by
 
-    rw [← Finset.prod_mk f_split.roots h_f_split_root_nodup]
+    rw [← prod_mk f_split.roots h_f_split_root_nodup]
     rw [Multiset.toFinset_eq h_f_split_root_nodup]
 
-    rw [← Finset.prod_coe_sort]
-    -- rw [← Finset.prod_coe_sort f_split.roots.toFinset]
+    rw [← prod_coe_sort]
+    -- rw [← prod_coe_sort f_split.roots.toFinset]
 
     rw [Fintype.prod_congr]
     intro x
     have h_nodup_erase : (f_split.roots.erase x).Nodup := by
       apply h_f_split_root_nodup.erase
-    rw [← Finset.prod_mk (f_split.roots.erase x) h_nodup_erase]
+    rw [← prod_mk (f_split.roots.erase x) h_nodup_erase]
     rw [Multiset.toFinset_eq h_nodup_erase]
 
     have h_erase_eq_erase : (f_split.roots.erase x).toFinset = f_split.roots.toFinset.erase x := by
@@ -252,9 +252,9 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
 
   have h_to_fin_prod : ∏ x : f_split.roots.toFinset, ∏ x_1 ∈ f_split.roots.toFinset.erase x,
       (x - x_1) =
-      ∏ x : Fin 3, ∏ x_1 ∈ (Finset.univ : Finset (Fin 3)).erase x, ((index x : ℂ) - index x_1) := by
-    -- rw [Finset.prod_equiv index]
-    let index_map_f : Fin 3 → ℂ := (fun x ↦ ∏ x_1 ∈ (Finset.univ : Finset (Fin 3)).erase x,
+      ∏ x : Fin 3, ∏ x_1 ∈ (univ : Finset (Fin 3)).erase x, ((index x : ℂ) - index x_1) := by
+    -- rw [prod_equiv index]
+    let index_map_f : Fin 3 → ℂ := (fun x ↦ ∏ x_1 ∈ (univ : Finset (Fin 3)).erase x,
         ((index x : ℂ) - index x_1))
     let index_map_g : f_split.roots.toFinset → ℂ := (fun (ix : f_split.roots.toFinset) ↦
         ∏ x_1 ∈ f_split.roots.toFinset.erase ix, (ix - x_1))
@@ -262,35 +262,35 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
       intro x
       dsimp [index_map_f, index_map_g]
 
-      -- rw [← Finset.prod_coe_sort]
-      -- rw [← Finset.prod_coe_sort (f_split.roots.toFinset.erase (index x))]
+      -- rw [← prod_coe_sort]
+      -- rw [← prod_coe_sort (f_split.roots.toFinset.erase (index x))]
 
-      #check Finset.prod_bij
+      #check prod_bij
       -- let index_map := fun y hy => (index y : ℂ)
-      #check Finset.prod_bij (fun y _ => (index y : ℂ)) _
+      #check prod_bij (fun y _ => (index y : ℂ)) _
 
-      -- rw [Finset.prod_bij (fun y _ => (index y : ℂ))]
-      -- goal 1 : ∀ a ∈ Finset.univ.erase x, ↑(index a) ∈ f_split.roots.toFinset.erase ↑(index x)
+      -- rw [prod_bij (fun y _ => (index y : ℂ))]
+      -- goal 1 : ∀ a ∈ univ.erase x, ↑(index a) ∈ f_split.roots.toFinset.erase ↑(index x)
       -- · intro a ha
-        -- rw [Finset.map_erase index.toEmbedding]
+        -- rw [map_erase index.toEmbedding]
 
       -- rw [Fintype.prod_equiv]
 
-      -- #check Finset.prod_nbij (s := Finset.univ.erase x) (t := f_split.roots.toFinset.erase (index x)) index
-      #check Finset.prod_image
+      -- #check prod_nbij (s := univ.erase x) (t := f_split.roots.toFinset.erase (index x)) index
+      #check prod_image
 
       let index_C : Fin 3 → ℂ := fun s ↦ (index s).val
-      have h_index_inj' : Set.InjOn index_C (Finset.univ.erase x) := by
+      have h_index_inj' : Set.InjOn index_C (univ.erase x) := by
         intro i hi j hj hij
         apply index.injective
         ext
         exact hij
 
-      have h_index_image : Finset.image index_C (Finset.univ.erase x) = f_split.roots.toFinset.erase
+      have h_index_image : image index_C (univ.erase x) = f_split.roots.toFinset.erase
           (index x) := by
         apply Finset.ext
         intro x_1
-        simp only [Finset.mem_image, Finset.mem_erase, Finset.mem_univ, and_true, index_C]
+        simp only [mem_image, mem_erase, mem_univ, and_true, index_C]
         constructor
         · intro h1
           obtain ⟨a, ha, hai⟩ := h1
@@ -312,7 +312,7 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
           · rw [index.apply_symm_apply]
 
       rw [← h_index_image]
-      rw [Finset.prod_image h_index_inj']
+      rw [prod_image h_index_inj']
 
       -- sorry
     rw [Fintype.prod_equiv index _ _ h_index_map]
@@ -320,50 +320,123 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
   rw [h_to_fin_prod]
 
 
-  #check Finset.prod_equiv index _ _
-  #check Finset.prod_map Finset.univ index.toEmbedding
+  #check prod_equiv index _ _
+  #check prod_map univ index.toEmbedding
   #check Fintype.prod_equiv index
 
   #check Set.Iio_union_Ioi
   #check Set.Iio_union_Ioi (α := Fin 3)
-  #check Finset.compl_singleton
+  #check compl_singleton
 
-  have h_to_ioi_iio_prod : ∏ x : Fin 3, ∏ x_1 ∈ (Finset.univ : Finset (Fin 3)).erase x,
+  have h_to_ioi_iio_prod : ∏ x : Fin 3, ∏ x_1 ∈ (univ : Finset (Fin 3)).erase x,
       ((index x : ℂ) - index x_1)
-      = (∏ x : Fin 3, ∏ x_1 ∈ Finset.Ioi x, ((index x : ℂ) - index x_1)) *
-      ∏ x : Fin 3, ∏ x_1 ∈ Finset.Iio x, ((index x : ℂ) - index x_1) := by
+      = (∏ x : Fin 3, ∏ x_1 ∈ Ioi x, ((index x : ℂ) - index x_1)) *
+      ∏ x : Fin 3, ∏ x_1 ∈ Iio x, ((index x : ℂ) - index x_1) := by
 
-    rw [← Finset.prod_mul_distrib]
+    rw [← prod_mul_distrib]
 
     rw [Fintype.prod_congr]
     intro x
-    have h_erase_eq_ioi_cup_iio : Finset.univ.erase x = Finset.Ioi x ∪ Finset.Iio x := by
+    have h_erase_eq_ioi_cup_iio : univ.erase x = Ioi x ∪ Iio x := by
       apply Finset.ext
       intro x_1
-      simp only [Finset.mem_erase, Finset.mem_univ, and_true, Finset.mem_union, Finset.mem_Ioi,
-        Finset.mem_Iio]
+      simp only [mem_erase, mem_univ, and_true, mem_union, mem_Ioi,
+        mem_Iio]
       exact lt_or_gt_iff_ne'.symm
-    have h_ioi_iio_disjoint : Disjoint (Finset.Ioi x) (Finset.Iio x) := by
-      exact Finset.disjoint_Ioi_Iio x
+    have h_ioi_iio_disjoint : Disjoint (Ioi x) (Iio x) := by
+      exact disjoint_Ioi_Iio x
 
     rw [h_erase_eq_ioi_cup_iio]
 
-    #check Finset.prod_union
-    #check Finset.prod_union h_ioi_iio_disjoint
+    #check prod_union
+    #check prod_union h_ioi_iio_disjoint
 
-    rw [Finset.prod_union h_ioi_iio_disjoint]
-
-
+    rw [prod_union h_ioi_iio_disjoint]
 
 
-  have h_to_ioi_prod : ∏ x : Fin 3, ∏ x_1 ∈ (Finset.univ : Finset (Fin 3)).erase x,
-      ((index x : ℂ) - index x_1)
-      = ∏ x : Fin 3, ∏ x_1 ∈ Finset.Ioi x, - ((index x : ℂ) - index x_1) ^ 2 := by
+  rw [h_to_ioi_iio_prod]
 
 
+  have h_to_ioi_prod : (∏ x, ∏ x_1 ∈ Ioi x, ((index x : ℂ) - index x_1)) *
+      ∏ x, ∏ x_1 ∈ Iio x, ((index x : ℂ) - index x_1)
+      = - ∏ x : Fin 3, ∏ x_1 ∈ Ioi x, ((index x : ℂ) - index x_1) ^ 2 := by
 
+    have h_iio_to_with : ∏ x, ∏ x_1 ∈ Iio x, ((index x : ℂ) - index x_1) =
+        ∏ x, ∏ x_1 with x_1 < x, ((index x : ℂ) - index x_1) := by
+      rw [Fintype.prod_congr]
+      intro x
 
-    sorry
+      -- #check prod_subtype_eq_prod_filter
+      -- rw [← prod_subtype_eq_prod_filter]
+
+      have h_iio_eq_filter : (univ : Finset (Fin 3)).filter (fun x_1 ↦ x_1 < x) =
+          Iio x := by
+        apply Finset.ext
+        intro x_1
+        simp only [mem_filter, mem_univ, true_and, mem_Iio]
+
+      rw [← h_iio_eq_filter]
+
+    #check Filter.prod_comm
+    #check prod_comm
+
+    have h_iio_to_ioi : ∏ x, ∏ x_1 ∈ Iio x, ((index x : ℂ) - index x_1) =
+        - ∏ x, ∏ x_1 ∈ Ioi x, ((index x : ℂ) - index x_1) := by
+
+      have h_iio_iff_ioi : ∀ (x : Fin 3) (x_1 : Fin 3), x ∈ univ ∧ x_1 ∈ Iio x ↔
+          x ∈ Ioi x_1 ∧ x_1 ∈ univ := by
+        intro x x_1
+        simp only [mem_univ, true_and, mem_Iio, and_true, mem_Ioi]
+
+      #check prod_comm' (s := (univ : Finset (Fin 3))) (t := Iio) (t' := (univ : Finset (Fin 3))) (s' := Ioi) h_iio_iff_ioi
+
+      rw [prod_comm' (s := (univ : Finset (Fin 3))) (t := Iio)
+          (t' := (univ : Finset (Fin 3))) (s' := Ioi) h_iio_iff_ioi]
+
+      -- #check Fin.card_Ioi
+      #check Nat.geomSum_eq
+
+      calc
+        ∏ y, ∏ x ∈ Ioi y, ((index x : ℂ) - index y)
+        = ∏ y, ∏ x ∈ Ioi y, (-1) * ((index y : ℂ) - index x) := by simp
+        _ = ∏ y, ((∏ x ∈ Ioi y, (-1)) * ∏ x ∈ Ioi y, ((index y : ℂ) - index x)) := by
+          rw [Fintype.prod_congr]
+          intro y
+          rw [← prod_mul_distrib]
+        _ = (∏ y : Fin 3, ∏ x ∈ Ioi y, (-1)) * ∏ y, ∏ x ∈ Ioi y, ((index y : ℂ) - index x) := by
+          rw [← prod_mul_distrib]
+        _ = (∏ y : Fin 3, (-1) ^ (2 - y.val)) * ∏ y, ∏ x ∈ Ioi y, ((index y : ℂ) - index x) := by
+          rw [Fintype.prod_congr]
+          intro y
+          rw [prod_const]
+          rw [Fin.card_Ioi]
+        _ = (-1) ^ (∑ y : Fin 3, (2 - y.val)) * ∏ y, ∏ x ∈ Ioi y, ((index y : ℂ) - index x) := by
+          rw [prod_pow_eq_pow_sum]
+        -- _ = (-1) ^ (∑ y ∈ range 3, (2 - y)) * ∏ x, ∏ x_1 ∈ Ioi x, (↑(index x) - ↑(index x_1)) := by
+        --   rw [Fin.sum_univ_eq_sum_range]
+        -- _ = (-1) ^ (∑ y ∈ range 3, 2 - ∑ y ∈ range 3, y) * ∏ x, ∏ x_1 ∈ Ioi x, (↑(index x) - ↑(index x_1)) := by
+        _ = - ∏ y, ∏ x ∈ Ioi y, ((index y : ℂ) - index x) := by
+          rw [Fin.sum_univ_three]
+          norm_num
+
+    -- #check Fin.card_Ioi
+
+      -- rw [mem_Iio]
+
+      -- sorry
+
+    rw [h_iio_to_ioi, mul_neg, ← prod_mul_distrib]
+    congr
+    ext x
+    rw [← prod_mul_distrib]
+    congr
+    ext x_1
+    rw [pow_two]
+
+  rw [h_to_ioi_prod]
+
+  simp only [map_neg, neg_inj]
+
 
 
   --   sorry
