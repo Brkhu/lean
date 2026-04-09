@@ -9,8 +9,6 @@ import Mathlib.FieldTheory.IntermediateField.Adjoin.Defs
 
 import Mathlib.NumberTheory.NumberField.Discriminant.Defs
 
--- for cubic
-import Mathlib.Algebra.CubicDiscriminant
 
 import Mathlib.FieldTheory.IsAlgClosed.Basic
 
@@ -47,20 +45,6 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
   rw [Int.eq_neg_comm] at h'
 
   rw [h']
-  -- simp
-
-  -- have h' : (algebraMap ℚ (AlgebraicClosure ↥ℚ⟮y⟯)) (Algebra.discr ℚ ⇑pb.basis) =
-  -- rw [h _]
-  #check IntermediateField.algHomAdjoinIntegralEquiv _ (K := AlgebraicClosure ℚ) y_integral'
-
-  #check IntermediateField.algHomAdjoinIntegralEquiv_symm_apply_gen
-
-  #check Cubic.discr_eq_prod_three_roots
-
-  #check resultant_deriv (f := f) (by rw [hf_deg]; norm_num)
-
-  #check resultant_map_map f f.derivative f.natDegree f.derivative.natDegree (algebraMap ℤ ℚ)
-
 
   have h_to_rat : (f.resultant (derivative f) 3 2) =
       f_rat.resultant f_rat.derivative 3
@@ -102,30 +86,14 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
     rw [← resultant_map_map f_rat f_rat.derivative 3 2 (algebraMap ℚ ℂ)]
     rw [derivative_map f_rat]
 
-  -- #check Algebra.discr_powerBasis_eq_prod ℚ (AlgebraicClosure ℚ⟮y⟯) pb
   have h_Qybar_inj : Function.Injective (algebraMap ℚ ℂ) := by
-    sorry
-  #check Subfield.subtype_injective (K := AlgebraicClosure ℚ)
+    exact Rat.cast_injective
+
   apply h_Qybar_inj
-  -- have h : Field.toSemifield.toCommSemiring = Rat.commSemiring := rfl
-  -- rw [← h]
-  -- simp
 
   rw [h_to_split]
 
 
-  #check Irreducible.separable
-
-  -- simp only [Int.cast_neg, IntermediateField.adjoin.powerBasis_dim]
-  -- rw [h'']
-
-
-  #check resultant_map_map f_rat f_rat.derivative f_rat.natDegree f_rat.derivative.natDegree (algebraMap ℚ ℂ)
-
-  -- have hf'_natDeg_leq : f_split.derivative.natDegree ≤ 2 := by
-  --   have h_leq := Polynomial.natDegree_derivative_le f_split
-  --   rw [h_f_split_natDeg, (by norm_num : 3 - 1 = 2)] at h_leq
-  --   exact h_leq
 
   have h_to_prod := resultant_eq_prod_eval f_split f_split.derivative (f_split.natDegree - 1)
       (Polynomial.natDegree_derivative_le f_split) h_f_split_splits
@@ -134,14 +102,12 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
 
   rw [h_to_prod]
 
-  -- #check Polynomial.Splits.eval_root_derivative
-  -- rw [Polynomial.Splits.eval_root_derivative]
 
   have h_to_double_prod : (Multiset.map (fun x ↦ eval x (derivative f_split)) f_split.roots).prod =
       (Multiset.map (fun x ↦ (Multiset.map (fun x_1 ↦ x - x_1) (f_split.roots.erase x)).prod)
       f_split.roots).prod := by
     congr 1
-    -- #check map_congr
+
     have h_eval_deriv : ∀ x ∈ f_split.roots, eval x (derivative f_split) = (Multiset.map
         (fun x_1 ↦ x - x_1) (f_split.roots.erase x)).prod := by
       intro _ hx
@@ -152,52 +118,6 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
   rw [h_to_double_prod]
 
 
-
-  -- #check Polynomial.Splits.degree_eq_card_roots h_f_split_splits h_f_split_nonzero
-  -- #check Fintype.card_eq (α := Fin)
-  -- #check Fintype.card_fin
-
-  -- let index : Fin f_split.natDegree ≃ f_split.roots := by
-  --   have h_root_card := Polynomial.Splits.degree_eq_card_roots h_f_split_splits h_f_split_nonzero
-  --   rw [h_f_split_deg] at h_root_card
-  --   norm_cast at h_root_card
-  --   apply Fintype.equivOfCardEq
-  --   rw [Multiset.card_coe, Fintype.card_fin, h_root_card]
-
-  -- #check index.toFun
-  -- #check index.symm.toFun
-  -- -- #check
-
-  -- #check finprod_comp index.toFun
-  #check prod_multiset_map_count
-  #check prod_mk
-  #check prod_mk f_split.roots h_f_split_root_nodup
-
-
-
-  #check Multiset.map_map
-
-  #check Multiset.toFinset_eq
-  #check Multiset.toFinset_eq h_f_split_root_nodup
-
-
-  -- rw [← prod_mk f_split.roots h_f_split_root_nodup]
-  -- rw [Multiset.toFinset_eq h_f_split_root_nodup]
-
-
-
-  -- have h_to_fin_double_prod : (Multiset.map (fun x ↦ (Multiset.map (fun x_1 ↦ x - x_1)
-  --     (f_split.roots.erase x)).prod) f_split.roots).prod = 1 := by
-    -- congr 1
-    -- -- #check map_congr
-    -- have h_eval_deriv : ∀ x ∈ f_split.roots, eval x (derivative f_split) = (Multiset.map
-    --     (fun x_1 ↦ x - x_1) (f_split.roots.erase x)).prod := by
-    --   intro _ hx
-    --   exact Polynomial.Splits.eval_root_derivative h_f_split_splits h_f_split_monic hx
-    -- exact Multiset.map_congr (by rfl) h_eval_deriv
-
-    -- sorry
-
   have h_to_fin_double_prod : (Multiset.map (fun x ↦ (Multiset.map (fun x_1 ↦ x - x_1)
       (f_split.roots.erase x)).prod) f_split.roots).prod
       = ∏ x : f_split.roots.toFinset, ∏ x_1 ∈ f_split.roots.toFinset.erase x, (x - x_1) := by
@@ -206,7 +126,6 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
     rw [Multiset.toFinset_eq h_f_split_root_nodup]
 
     rw [← prod_coe_sort]
-    -- rw [← prod_coe_sort f_split.roots.toFinset]
 
     rw [Fintype.prod_congr]
     intro x
@@ -232,52 +151,28 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
     rw [h_f_split_deg] at h_root_card
     norm_cast at h_root_card
     apply Fintype.equivOfCardEq
-    -- #check Multiset.toFinset_card_of_nodup h_f_split_root_nodup
+
     simp only [Fintype.card_fin, Multiset.mem_toFinset, mem_roots', ne_eq, IsRoot.def,
       Fintype.card_coe, Multiset.toFinset_card_of_nodup h_f_split_root_nodup]
     rw [← h_root_card]
     rw [hf_rat_minpoly]
     exact hf_rat_natDeg
 
-  #check index.toFun
-  #check index.symm.toFun
-  -- #check
-
-  #check finprod_comp index.toFun
-
-  #check finprod_comp
-
-
-  -- let sub_fun : ℂ × ℂ → ℂ := fun p ↦ if p.1 = p.2 then 1 else p.1 - p.2
 
   have h_to_fin_prod : ∏ x : f_split.roots.toFinset, ∏ x_1 ∈ f_split.roots.toFinset.erase x,
       (x - x_1) =
-      ∏ x : Fin (minpoly ℚ y).natDegree, ∏ x_1 ∈ (univ : Finset (Fin (minpoly ℚ y).natDegree)).erase x, ((index x : ℂ) - index x_1) := by
-    -- rw [prod_equiv index]
-    let index_map_f : Fin (minpoly ℚ y).natDegree → ℂ := (fun x ↦ ∏ x_1 ∈ (univ : Finset (Fin (minpoly ℚ y).natDegree)).erase x,
-        ((index x : ℂ) - index x_1))
+      ∏ x : Fin (minpoly ℚ y).natDegree, ∏ x_1 ∈ (univ : Finset
+      (Fin (minpoly ℚ y).natDegree)).erase x, ((index x : ℂ) - index x_1) := by
+
+    let index_map_f : Fin (minpoly ℚ y).natDegree → ℂ := (fun x ↦ ∏ x_1 ∈ (univ : Finset (Fin
+        (minpoly ℚ y).natDegree)).erase x, ((index x : ℂ) - index x_1))
     let index_map_g : f_split.roots.toFinset → ℂ := (fun (ix : f_split.roots.toFinset) ↦
         ∏ x_1 ∈ f_split.roots.toFinset.erase ix, (ix - x_1))
-    have h_index_map : ∀ (x : Fin (minpoly ℚ y).natDegree), index_map_f x = index_map_g (index x) := by
+    have h_index_map : ∀ (x : Fin (minpoly ℚ y).natDegree), index_map_f x = index_map_g (index x)
+        := by
       intro x
       dsimp [index_map_f, index_map_g]
 
-      -- rw [← prod_coe_sort]
-      -- rw [← prod_coe_sort (f_split.roots.toFinset.erase (index x))]
-
-      #check prod_bij
-      -- let index_map := fun y hy => (index y : ℂ)
-      #check prod_bij (fun y _ => (index y : ℂ)) _
-
-      -- rw [prod_bij (fun y _ => (index y : ℂ))]
-      -- goal 1 : ∀ a ∈ univ.erase x, ↑(index a) ∈ f_split.roots.toFinset.erase ↑(index x)
-      -- · intro a ha
-        -- rw [map_erase index.toEmbedding]
-
-      -- rw [Fintype.prod_equiv]
-
-      -- #check prod_nbij (s := univ.erase x) (t := f_split.roots.toFinset.erase (index x)) index
-      #check prod_image
 
       let index_C : Fin (minpoly ℚ y).natDegree → ℂ := fun s ↦ (index s).val
       have h_index_inj' : Set.InjOn index_C (univ.erase x) := by
@@ -320,16 +215,8 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
   rw [h_to_fin_prod]
 
 
-  #check prod_equiv index _ _
-  #check prod_map univ index.toEmbedding
-  #check Fintype.prod_equiv index
-
-  #check Set.Iio_union_Ioi
-  #check Set.Iio_union_Ioi (α := Fin (minpoly ℚ y).natDegree)
-  #check compl_singleton
-
-  have h_to_ioi_iio_prod : ∏ x : Fin (minpoly ℚ y).natDegree, ∏ x_1 ∈ (univ : Finset (Fin (minpoly ℚ y).natDegree)).erase x,
-      ((index x : ℂ) - index x_1)
+  have h_to_ioi_iio_prod : ∏ x : Fin (minpoly ℚ y).natDegree, ∏ x_1 ∈ (univ : Finset (Fin (minpoly
+      ℚ y).natDegree)).erase x, ((index x : ℂ) - index x_1)
       = (∏ x : Fin (minpoly ℚ y).natDegree, ∏ x_1 ∈ Ioi x, ((index x : ℂ) - index x_1)) *
       ∏ x : Fin (minpoly ℚ y).natDegree, ∏ x_1 ∈ Iio x, ((index x : ℂ) - index x_1) := by
 
@@ -348,8 +235,6 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
 
     rw [h_erase_eq_ioi_cup_iio]
 
-    #check prod_union
-    #check prod_union h_ioi_iio_disjoint
 
     rw [prod_union h_ioi_iio_disjoint]
 
@@ -366,35 +251,25 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
       rw [Fintype.prod_congr]
       intro x
 
-      -- #check prod_subtype_eq_prod_filter
-      -- rw [← prod_subtype_eq_prod_filter]
-
-      have h_iio_eq_filter : (univ : Finset (Fin (minpoly ℚ y).natDegree)).filter (fun x_1 ↦ x_1 < x) =
-          Iio x := by
+      have h_iio_eq_filter : (univ : Finset (Fin (minpoly ℚ y).natDegree)).filter
+          (fun x_1 ↦ x_1 < x) = Iio x := by
         apply Finset.ext
         intro x_1
         simp only [mem_filter, mem_univ, true_and, mem_Iio]
 
       rw [← h_iio_eq_filter]
 
-    #check Filter.prod_comm
-    #check prod_comm
 
     have h_iio_to_ioi : ∏ x, ∏ x_1 ∈ Iio x, ((index x : ℂ) - index x_1) =
         - ∏ x, ∏ x_1 ∈ Ioi x, ((index x : ℂ) - index x_1) := by
 
-      have h_iio_iff_ioi : ∀ (x : Fin (minpoly ℚ y).natDegree) (x_1 : Fin (minpoly ℚ y).natDegree), x ∈ univ ∧ x_1 ∈ Iio x ↔
-          x ∈ Ioi x_1 ∧ x_1 ∈ univ := by
+      have h_iio_iff_ioi : ∀ (x : Fin (minpoly ℚ y).natDegree) (x_1 : Fin (minpoly ℚ y).natDegree),
+          x ∈ univ ∧ x_1 ∈ Iio x ↔ x ∈ Ioi x_1 ∧ x_1 ∈ univ := by
         intro x x_1
         simp only [mem_univ, true_and, mem_Iio, and_true, mem_Ioi]
 
-      #check prod_comm' (s := (univ : Finset (Fin (minpoly ℚ y).natDegree))) (t := Iio) (t' := (univ : Finset (Fin (minpoly ℚ y).natDegree))) (s' := Ioi) h_iio_iff_ioi
-
       rw [prod_comm' (s := (univ : Finset (Fin (minpoly ℚ y).natDegree))) (t := Iio)
           (t' := (univ : Finset (Fin (minpoly ℚ y).natDegree))) (s' := Ioi) h_iio_iff_ioi]
-
-      -- #check Fin.card_Ioi
-      #check Nat.geomSum_eq
 
       calc
         ∏ y, ∏ x ∈ Ioi y, ((index x : ℂ) - index y)
@@ -405,7 +280,8 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
           rw [← prod_mul_distrib]
         _ = (∏ y, ∏ x ∈ Ioi y, (-1)) * ∏ y, ∏ x ∈ Ioi y, ((index y : ℂ) - index x) := by
           rw [← prod_mul_distrib]
-        _ = (∏ y : Fin (minpoly ℚ y).natDegree, (-1) ^ (2 - y.val)) * ∏ y, ∏ x ∈ Ioi y, ((index y : ℂ) - index x) := by
+        _ = (∏ y : Fin (minpoly ℚ y).natDegree, (-1) ^ (2 - y.val)) * ∏ y, ∏ x ∈ Ioi y,
+            ((index y : ℂ) - index x) := by
           rw [Fintype.prod_congr]
           intro y
           rw [prod_const]
@@ -413,23 +289,16 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
           congr
           rw [hf_rat_minpoly]
           rw [hf_rat_natDeg]
-        _ = (-1) ^ (∑ y : Fin (minpoly ℚ y).natDegree, (2 - y.val)) * ∏ y, ∏ x ∈ Ioi y, ((index y : ℂ) - index x) := by
+        _ = (-1) ^ (∑ y : Fin (minpoly ℚ y).natDegree, (2 - y.val)) * ∏ y, ∏ x ∈ Ioi y,
+            ((index y : ℂ) - index x) := by
           rw [prod_pow_eq_pow_sum]
-        -- _ = (-1) ^ (∑ y ∈ range 3, (2 - y)) * ∏ x, ∏ x_1 ∈ Ioi x, (↑(index x) - ↑(index x_1)) := by
-        --   rw [Fin.sum_univ_eq_sum_range]
-        -- _ = (-1) ^ (∑ y ∈ range 3, 2 - ∑ y ∈ range 3, y) * ∏ x, ∏ x_1 ∈ Ioi x, (↑(index x) - ↑(index x_1)) := by
         _ = (-1) ^ (∑ y : Fin 3, (2 - y.val)) * ∏ y, ∏ x ∈ Ioi y, ((index y : ℂ) - index x) := by
-          rw [← Fin.sum_congr' _ (by rw [hf_rat_minpoly, hf_rat_natDeg] : 3 = (minpoly ℚ y).natDegree)]
+          rw [← Fin.sum_congr' _ (by rw [hf_rat_minpoly, hf_rat_natDeg] : 3 =
+            (minpoly ℚ y).natDegree)]
           simp
         _ = - ∏ y, ∏ x ∈ Ioi y, ((index y : ℂ) - index x) := by
           rw [Fin.sum_univ_three]
           norm_num
-
-    -- #check Fin.card_Ioi
-
-      -- rw [mem_Iio]
-
-      -- sorry
 
     rw [h_iio_to_ioi, mul_neg, ← prod_mul_distrib]
     congr
@@ -444,55 +313,21 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
   simp only [eq_ratCast, Rat.cast_neg, neg_inj]
 
 
-
-
-
-  --   sorry
-  -- have h_roots_aroots : f_split.roots.toFinset ≃ { x // x ∈ (minpoly ℚ y).aroots ℂ } := by
-  --   rw [hf_rat_minpoly]
-  --   have h_rat_aroots : f_rat.aroots ℂ = f_split.roots := by
-  --     rw [aroots_def]
-  --   rw [h_rat_aroots]
-  --   simp
-  --   rfl
-
-
-
-  -- have h_roots_aroots_multiset : f_split.roots = (minpoly ℚ y).aroots ℂ := by
-  --   rw [aroots_def]
-  --   rw [hf_rat_minpoly]
-  -- have h_roots_aroots : f_split.roots.toFinset = ((minpoly ℚ y).aroots ℂ).toFinset := by
-  --   congr
-
-  -- let roots_finset_aroots_finset : f_split.roots.toFinset ≃ { x // x ∈ ((minpoly ℚ y).aroots ℂ).toFinset } :=
-  --   Equiv.subtypeEquivRight (Finset.ext_iff.mp h_roots_aroots)
-  -- let aroots_finset_aroots : { x // x ∈ ((minpoly ℚ y).aroots ℂ).toFinset } ≃ { x // x ∈ (minpoly ℚ y).aroots ℂ } :=
-  --   Equiv.subtypeEquivRight (by intro x ; exact Multiset.mem_toFinset : ∀ (x : ℂ), x ∈ ((minpoly ℚ y).aroots ℂ).toFinset ↔ x ∈ (minpoly ℚ y).aroots ℂ)
-
   have h_roots_iff_aroots : ∀ (x : ℂ), x ∈ f_split.roots.toFinset ↔ x ∈ (minpoly ℚ y).aroots ℂ := by
     intro x
     rw [Multiset.mem_toFinset]
     rw [aroots_def]
     rw [hf_rat_minpoly]
-  let roots_aroots : f_split.roots.toFinset ≃ { x // x ∈ (minpoly ℚ y).aroots ℂ } := Equiv.subtypeEquivRight h_roots_iff_aroots
+  let roots_aroots : f_split.roots.toFinset ≃ { x // x ∈ (minpoly ℚ y).aroots ℂ } :=
+    Equiv.subtypeEquivRight h_roots_iff_aroots
 
-  #check Equiv.subtypeEquivRight
-  #check Equiv.subtypeEquivRight_apply
 
-  #check Set.Finite.subtypeEquivToFinset
-  #check Multiset.mem_toFinset
-
-  let index' : Fin (minpoly ℚ y).natDegree ≃ { x // x ∈ (minpoly ℚ y).aroots ℂ } := index.trans roots_aroots
+  let index' : Fin (minpoly ℚ y).natDegree ≃ { x // x ∈ (minpoly ℚ y).aroots ℂ } :=
+    index.trans roots_aroots
   let embed_roots : (ℚ⟮y⟯ →ₐ[ℚ] ℂ) ≃ { x // x ∈ (minpoly ℚ y).aroots ℂ } :=
     IntermediateField.algHomAdjoinIntegralEquiv ℚ (K := ℂ) y_integral'
   let index'' : Fin (minpoly ℚ y).natDegree ≃ (ℚ⟮y⟯ →ₐ[ℚ] ℂ) := index'.trans embed_roots.symm
 
-  -- rw [← hf_rat_natDeg] at index''
-  -- rw [← hf_rat_minpoly] at index''
-
-  -- #check h index''
-
-  -- let embed : Fin (minpoly ℚ y).natDegree ≃ (F →ₐ[ℚ] ℂ) :=
 
   let y' := IntermediateField.AdjoinSimple.gen ℚ y
 
@@ -517,25 +352,12 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
 
 
 
-  -- rw [h index'']
-
-  #check Equiv.trans_apply index roots_aroots
-
-
-  #check IntermediateField.algHomAdjoinIntegralEquiv ℚ (K := ℂ) y_integral'
-
-  #check IntermediateField.algHomAdjoinIntegralEquiv_symm_apply_gen ℚ (K := ℂ) y_integral'
-
   rw [h_to_index'']
-  -- rw [← hf_rat_natDeg] at index''
-  -- rw [← hf_rat_minpoly] at index''
-  symm
+
 
   have h := Algebra.discr_powerBasis_eq_prod ℚ ℂ pb
-  -- rw [h]
   simp only [IntermediateField.adjoin.powerBasis_dim, eq_ratCast,
     IntermediateField.adjoin.powerBasis_gen] at h
-  -- rw [hf_rat_minpoly] at h
 
   erw [h index'']
   dsimp only [index'', y']
