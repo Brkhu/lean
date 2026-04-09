@@ -26,11 +26,9 @@ open Polynomial NumberField Finset
 variable {A B : Type*} [CommRing A] [CommRing B] [Algebra A B]
 
 
-
 noncomputable abbrev b := NumberField.integralBasis ℚ⟮y⟯
 noncomputable abbrev pb := IntermediateField.adjoin.powerBasis y_integral'
 
-lemma h_pb_gen_y : pb.gen = y := by rfl
 
 lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
   have h_to_resultant := resultant_deriv (f := f) (by rw [hf_deg]; norm_num)
@@ -327,7 +325,6 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
   erw [h index'']
   dsimp only [index'', y']
   rfl
-
 
 lemma discr_powbasis_integralbasis : ∃ (m : ℤ), Algebra.discr ℚ pb.basis = m ^ 2 * discr F := by
 
