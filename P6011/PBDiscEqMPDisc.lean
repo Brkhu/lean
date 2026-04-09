@@ -1,10 +1,5 @@
--- for discr and resultants of polynomials
 import Mathlib.RingTheory.Polynomial.Resultant.Basic
--- for qify
 import Mathlib.Tactic.Qify
--- for rational integral over Z
-import Mathlib.NumberTheory.Niven
--- for ring of integer as range
 import Mathlib.FieldTheory.IntermediateField.Adjoin.Defs
 
 import Mathlib.NumberTheory.NumberField.Discriminant.Defs
@@ -38,13 +33,13 @@ noncomputable abbrev pb := IntermediateField.adjoin.powerBasis y_integral'
 lemma h_pb_gen_y : pb.gen = y := by rfl
 
 lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
-  have h' := resultant_deriv (f := f) (by rw [hf_deg]; norm_num)
-  rw [hf_natDeg, (Monic.def).mp hf_monic] at h'
+  have h_to_resultant := resultant_deriv (f := f) (by rw [hf_deg]; norm_num)
+  rw [hf_natDeg, (Monic.def).mp hf_monic] at h_to_resultant
   simp only [Nat.add_one_sub_one, Int.reduceNeg, Nat.reduceMul, Nat.reduceDiv, Int.reducePow,
-    mul_one, neg_mul, one_mul] at h'
-  rw [Int.eq_neg_comm] at h'
+    mul_one, neg_mul, one_mul] at h_to_resultant
+  rw [Int.eq_neg_comm] at h_to_resultant
 
-  rw [h']
+  rw [h_to_resultant]
 
   have h_to_rat : (f.resultant (derivative f) 3 2) =
       f_rat.resultant f_rat.derivative 3
@@ -57,9 +52,6 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
   rw [neg_eq_iff_eq_neg]
 
   let f_split : ℂ[X] := f_rat.map (algebraMap ℚ ℂ)
-  have h_f_split_deg : f_split.degree = 3 := by
-    dsimp only [f_split]
-    rw [Polynomial.degree_map f_rat (algebraMap ℚ ℂ), hf_rat_deg]
   have h_f_split_natDeg : f_split.natDegree = 3 := by
     dsimp only [f_split]
     rw [Polynomial.natDegree_map (algebraMap ℚ ℂ), hf_rat_natDeg]
@@ -70,14 +62,19 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
     simp
   have h_f_split_splits : Splits f_split := by
     exact IsAlgClosed.splits f_split
-  have h_f_split_nonzero : f_split ≠ 0 := by
-    exact Polynomial.Monic.ne_zero_of_ne (by norm_num) h_f_split_monic
   have h_f_split_root_nodup : Multiset.Nodup f_split.roots := by
     apply nodup_roots
     have h_f_rat_separable : Separable f_rat := by
       exact Irreducible.separable hf_rat_irreducible
     dsimp only [f_split]
     exact Separable.map h_f_rat_separable
+
+
+  have h_Qybar_inj : Function.Injective (algebraMap ℚ ℂ) := by
+    exact Rat.cast_injective
+
+  apply h_Qybar_inj
+
 
   have h_to_split : algebraMap ℚ ℂ (f_rat.resultant (derivative f_rat) 3 2) =
       f_split.resultant f_split.derivative 3
@@ -86,13 +83,7 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
     rw [← resultant_map_map f_rat f_rat.derivative 3 2 (algebraMap ℚ ℂ)]
     rw [derivative_map f_rat]
 
-  have h_Qybar_inj : Function.Injective (algebraMap ℚ ℂ) := by
-    exact Rat.cast_injective
-
-  apply h_Qybar_inj
-
   rw [h_to_split]
-
 
 
   have h_to_prod := resultant_eq_prod_eval f_split f_split.derivative (f_split.natDegree - 1)
@@ -107,13 +98,11 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
       (Multiset.map (fun x ↦ (Multiset.map (fun x_1 ↦ x - x_1) (f_split.roots.erase x)).prod)
       f_split.roots).prod := by
     congr 1
-
     have h_eval_deriv : ∀ x ∈ f_split.roots, eval x (derivative f_split) = (Multiset.map
         (fun x_1 ↦ x - x_1) (f_split.roots.erase x)).prod := by
       intro _ hx
       exact Polynomial.Splits.eval_root_derivative h_f_split_splits h_f_split_monic hx
     exact Multiset.map_congr (by rfl) h_eval_deriv
-
 
   rw [h_to_double_prod]
 
@@ -121,12 +110,10 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
   have h_to_fin_double_prod : (Multiset.map (fun x ↦ (Multiset.map (fun x_1 ↦ x - x_1)
       (f_split.roots.erase x)).prod) f_split.roots).prod
       = ∏ x : f_split.roots.toFinset, ∏ x_1 ∈ f_split.roots.toFinset.erase x, (x - x_1) := by
-
     rw [← prod_mk f_split.roots h_f_split_root_nodup]
     rw [Multiset.toFinset_eq h_f_split_root_nodup]
 
     rw [← prod_coe_sort]
-
     rw [Fintype.prod_congr]
     intro x
     have h_nodup_erase : (f_split.roots.erase x).Nodup := by
@@ -144,18 +131,13 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
   rw [h_to_fin_double_prod]
 
 
-
-
   let index : Fin (minpoly ℚ y).natDegree ≃ f_split.roots.toFinset := by
-    have h_root_card := Polynomial.Splits.degree_eq_card_roots h_f_split_splits h_f_split_nonzero
-    rw [h_f_split_deg] at h_root_card
-    norm_cast at h_root_card
     apply Fintype.equivOfCardEq
-
     simp only [Fintype.card_fin, Multiset.mem_toFinset, mem_roots', ne_eq, IsRoot.def,
       Fintype.card_coe, Multiset.toFinset_card_of_nodup h_f_split_root_nodup]
+    have h_root_card := Splits.natDegree_eq_card_roots h_f_split_splits
     rw [← h_root_card]
-    rw [hf_rat_minpoly]
+    rw [hf_rat_minpoly, h_f_split_natDeg]
     exact hf_rat_natDeg
 
 
@@ -163,7 +145,6 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
       (x - x_1) =
       ∏ x : Fin (minpoly ℚ y).natDegree, ∏ x_1 ∈ (univ : Finset
       (Fin (minpoly ℚ y).natDegree)).erase x, ((index x : ℂ) - index x_1) := by
-
     let index_map_f : Fin (minpoly ℚ y).natDegree → ℂ := (fun x ↦ ∏ x_1 ∈ (univ : Finset (Fin
         (minpoly ℚ y).natDegree)).erase x, ((index x : ℂ) - index x_1))
     let index_map_g : f_split.roots.toFinset → ℂ := (fun (ix : f_split.roots.toFinset) ↦
@@ -172,7 +153,6 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
         := by
       intro x
       dsimp [index_map_f, index_map_g]
-
 
       let index_C : Fin (minpoly ℚ y).natDegree → ℂ := fun s ↦ (index s).val
       have h_index_inj' : Set.InjOn index_C (univ.erase x) := by
@@ -209,7 +189,6 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
       rw [← h_index_image]
       rw [prod_image h_index_inj']
 
-      -- sorry
     rw [Fintype.prod_equiv index _ _ h_index_map]
 
   rw [h_to_fin_prod]
@@ -232,12 +211,8 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
       exact lt_or_gt_iff_ne'.symm
     have h_ioi_iio_disjoint : Disjoint (Ioi x) (Iio x) := by
       exact disjoint_Ioi_Iio x
-
     rw [h_erase_eq_ioi_cup_iio]
-
-
     rw [prod_union h_ioi_iio_disjoint]
-
 
   rw [h_to_ioi_iio_prod]
 
@@ -256,9 +231,7 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
         apply Finset.ext
         intro x_1
         simp only [mem_filter, mem_univ, true_and, mem_Iio]
-
       rw [← h_iio_eq_filter]
-
 
     have h_iio_to_ioi : ∏ x, ∏ x_1 ∈ Iio x, ((index x : ℂ) - index x_1) =
         - ∏ x, ∏ x_1 ∈ Ioi x, ((index x : ℂ) - index x_1) := by
@@ -284,18 +257,16 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
             ((index y : ℂ) - index x) := by
           rw [Fintype.prod_congr]
           intro y
-          rw [prod_const]
-          rw [Fin.card_Ioi]
+          rw [prod_const, Fin.card_Ioi]
           congr
-          rw [hf_rat_minpoly]
-          rw [hf_rat_natDeg]
+          rw [hf_rat_minpoly, hf_rat_natDeg]
         _ = (-1) ^ (∑ y : Fin (minpoly ℚ y).natDegree, (2 - y.val)) * ∏ y, ∏ x ∈ Ioi y,
             ((index y : ℂ) - index x) := by
           rw [prod_pow_eq_pow_sum]
         _ = (-1) ^ (∑ y : Fin 3, (2 - y.val)) * ∏ y, ∏ x ∈ Ioi y, ((index y : ℂ) - index x) := by
           rw [← Fin.sum_congr' _ (by rw [hf_rat_minpoly, hf_rat_natDeg] : 3 =
             (minpoly ℚ y).natDegree)]
-          simp
+          simp only [Fin.val_cast]
         _ = - ∏ y, ∏ x ∈ Ioi y, ((index y : ℂ) - index x) := by
           rw [Fin.sum_univ_three]
           norm_num
@@ -320,8 +291,6 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
     rw [hf_rat_minpoly]
   let roots_aroots : f_split.roots.toFinset ≃ { x // x ∈ (minpoly ℚ y).aroots ℂ } :=
     Equiv.subtypeEquivRight h_roots_iff_aroots
-
-
   let index' : Fin (minpoly ℚ y).natDegree ≃ { x // x ∈ (minpoly ℚ y).aroots ℂ } :=
     index.trans roots_aroots
   let embed_roots : (ℚ⟮y⟯ →ₐ[ℚ] ℂ) ≃ { x // x ∈ (minpoly ℚ y).aroots ℂ } :=
@@ -334,13 +303,11 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
   have h_to_index'' : ∏ x, ∏ x_1 ∈ Ioi x, ((index x_1 : ℂ) - index x) ^ 2 =
       ∏ x, ∏ x_1 ∈ Ioi x, ((index'' x_1) y' - (index'' x) y') ^ 2 := by
     rw [Fintype.prod_congr]
-    intro x_1
-    rw [← Finset.prod_coe_sort (Ioi x_1)]
-    rw [← Finset.prod_coe_sort (Ioi x_1)]
-    rw [Fintype.prod_congr]
     intro x
-    have h_index_index'' : ∀ x, index x = (index'' x) y' := by
-      intro x
+    rw [← Finset.prod_coe_sort (Ioi x), ← Finset.prod_coe_sort (Ioi x), Fintype.prod_congr]
+    intro x_1
+    have h_index_index'' : ∀ a, index a = (index'' a) y' := by
+      intro a
       dsimp only [index'']
       rw [Equiv.trans_apply]
       dsimp only [embed_roots, y']
@@ -349,8 +316,6 @@ lemma discr_powbasis_f : f.discr = Algebra.discr ℚ pb.basis := by
       rw [Equiv.trans_apply]
       rw [Equiv.subtypeEquivRight_apply]
     rw [h_index_index'', h_index_index'']
-
-
 
   rw [h_to_index'']
 
